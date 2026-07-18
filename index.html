@@ -300,8 +300,8 @@
       const img = new Image();
       img.onload = async function() {
         const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 1200;
-        const MAX_HEIGHT = 1200;
+        const MAX_WIDTH = 1000;
+        const MAX_HEIGHT = 1000;
         let width = img.width;
         let height = img.height;
 
@@ -322,21 +322,23 @@
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
 
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.70);
         const base64String = dataUrl.split(',')[1];
         
-        const params = new URLSearchParams();
-        params.append('action', 'uploadPhoto');
-        params.append('filename', file.name.replace(/\.[^/.]+$/, "") + ".jpg");
-        params.append('mimeType', 'image/jpeg');
-        params.append('base64String', base64String);
+        const payload = {
+          action: "uploadPhoto",
+          filename: file.name.replace(/\.[^/.]+$/, "") + ".jpg",
+          mimeType: "image/jpeg",
+          base64String: base64String
+        };
 
         try {
           await fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
-            body: params
+            body: JSON.stringify(payload)
           });
+          
           await new Promise(resolve => setTimeout(resolve, 4000));
           await syncCloudData();
         } catch(err) { console.error(err); }
