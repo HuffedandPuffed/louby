@@ -147,6 +147,27 @@
     }
     .delete-hint-btn:hover { color: #ef4444; }
 
+    /* Scratchpad Textarea Styling */
+    .scratchpad-textarea {
+      width: 100%;
+      height: 140px;
+      border: 2px dashed #fcd34d;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: inherit;
+      font-size: 15px;
+      color: #1e293b;
+      resize: none;
+      outline: none;
+      background-color: #fffdf5;
+      box-sizing: border-box;
+      line-height: 1.4;
+    }
+    .scratchpad-textarea:focus {
+      border-color: #f59e0b;
+      background-color: #ffffff;
+    }
+
     .panic-card { background: #fff5f5; border: 1px solid #feb2b2; }
     .panic-card h3 { color: #e53e3e; }
     .panic-btn {
@@ -185,6 +206,12 @@
       <h3>🎉 Weekend Countdown</h3>
       <div id="countdown-display" class="countdown-time">Calculating...</div>
       <p id="countdown-subtext" class="countdown-subtext">Until home time!</p>
+    </div>
+
+    <!-- DIGITAL SCRATCHPAD (Sticky Note layout) -->
+    <div class="card" style="background: #fffdf9; border: 1px solid #fde68a;">
+      <h3 style="color: #b45309;">📝 Digital Scratchpad</h3>
+      <textarea id="scratchpadInput" class="scratchpad-textarea" placeholder="Jot down numbers, quick notes, or reminders here... It saves instantly as you type!"></textarea>
     </div>
 
     <div class="card">
@@ -248,7 +275,24 @@
     fetchWeather();
     syncCloudData();
     startCountdown();
+    initializeScratchpad();
   });
+
+  // LOCAL MEMORY SCRATCHPAD LOGIC
+  function initializeScratchpad() {
+    const pad = document.getElementById('scratchpadInput');
+    
+    // Retrieve anything previously saved in this browser window
+    const savedContent = localStorage.getItem('louby_scratchpad_data');
+    if (savedContent) {
+      pad.value = savedContent;
+    }
+    
+    // Automatically capture every individual keystroke and save it
+    pad.addEventListener('input', () => {
+      localStorage.setItem('louby_scratchpad_data', pad.value);
+    });
+  }
 
   async function syncCloudData() {
     try {
