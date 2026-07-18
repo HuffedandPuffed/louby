@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Louby's Website</title>
   <style>
-    /* Cozier, modern theme designed for ease of reading */
     body {
       background-color: #f4f6f9;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -19,7 +18,6 @@
       margin: 0 auto;
     }
 
-    /* Welcome Banner - Image is ordered to display cleanly on the right side */
     .welcome-banner {
       display: flex;
       align-items: center;
@@ -47,8 +45,8 @@
       font-size: 28px;
     }
 
-    /* Top Row Layout (Weather, Inbox, Hints) */
-    .header-hub {
+    /* Unified Grid System */
+    .dashboard-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 20px;
@@ -56,15 +54,6 @@
       align-items: start;
     }
 
-    /* Main Content Layout (Watchlist, Countdown, Panic) */
-    .main-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
-      align-items: start;
-    }
-
-    /* Standard Card Base styling */
     .card {
       background: #ffffff;
       padding: 24px;
@@ -82,20 +71,11 @@
       letter-spacing: 0.75px;
     }
 
-    /* 1. Weather Styles */
-    .temp-big {
-      font-size: 42px;
-      font-weight: 700;
-      color: #0f172a;
-      line-height: 1;
-    }
-    .condition-text {
-      font-size: 16px;
-      color: #64748b;
-      margin-top: 6px;
-    }
+    /* Weather */
+    .temp-big { font-size: 42px; font-weight: 700; color: #0f172a; line-height: 1; }
+    .condition-text { font-size: 16px; color: #64748b; margin-top: 6px; }
 
-    /* 2. Inbox Styles */
+    /* Quick Links */
     .inbox-btn {
       display: block;
       text-align: center;
@@ -110,12 +90,8 @@
     }
     .inbox-btn:hover { background-color: #c53023; }
 
-    /* 3. Reusable Shared Input Row Styles */
-    .input-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
+    /* Forms & Inputs */
+    .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
     .input-row input, .input-row select {
       padding: 12px;
       font-size: 15px;
@@ -137,6 +113,8 @@
     }
     .btn-blue { background-color: #0284c7; }
     .btn-blue:hover { background-color: #0369a1; }
+    .btn-purple { background-color: #6b46c1; }
+    .btn-purple:hover { background-color: #553c9a; }
 
     .dashboard-list { list-style: none; padding: 0; margin: 0; }
     .dashboard-list li {
@@ -148,12 +126,30 @@
       font-size: 15px;
     }
 
-    /* Password Hints Specific Styling */
-    .hint-details { color: #334155; line-height: 1.4; padding-right: 10px; }
-    .delete-hint-btn { background: none; border: none; color: #94a3b8; font-size: 16px; cursor: pointer; padding: 4px 8px; }
-    .delete-hint-btn:hover { color: #ef4444; }
+    /* Photo Drop Styling */
+    .photo-frame-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .photo-wrapper {
+      position: relative;
+      width: 100%;
+      padding-top: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      background-color: #e2e8f0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .photo-wrapper img {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .hidden-file-input { display: none; }
 
-    /* 4. Watchlist Specific Styling */
+    /* Watchlist styling */
     .show-details { display: flex; flex-direction: column; gap: 4px; }
     .show-name { font-size: 16px; font-weight: 500; color: #1e293b; }
     .network-badge {
@@ -173,41 +169,34 @@
     .badge-neon { background-color: #ec4899; }
     .badge-other { background-color: #64748b; }
     .done-btn {
-      background-color: #22c55e;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      font-size: 14px;
-      border-radius: 6px;
-      cursor: pointer;
+      background-color: #22c55e; color: white; border: none;
+      padding: 6px 12px; font-size: 14px; border-radius: 6px; cursor: pointer;
     }
-    .done-btn:hover { background-color: #16a34a; }
 
-    /* 5. Tech Panic Styles */
+    /* Tech Panic */
     .panic-card { background: #fff5f5; border: 1px solid #feb2b2; }
     .panic-card h3 { color: #e53e3e; }
     .panic-btn {
-      width: 100%;
-      background-color: #e53e3e;
-      color: white;
-      font-size: 16px;
-      font-weight: 700;
-      padding: 14px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
+      width: 100%; background-color: #e53e3e; color: white;
+      font-size: 16px; font-weight: 700; padding: 14px; border: none; border-radius: 8px; cursor: pointer;
     }
-    .panic-btn:hover { background-color: #c53030; }
     .panic-steps { margin-top: 14px; background: white; padding: 12px; border-radius: 8px; border: 1px solid #fed7d7; }
     .panic-steps ol { margin: 0; padding-left: 18px; }
     .panic-steps li { font-size: 14px; color: #4a5568; margin-bottom: 8px; line-height: 1.4; }
 
-    /* 6. Weekend Countdown Styles */
+    /* Weekend Countdown Styles */
     .countdown-card { background: #f0fdf4; border: 1px solid #bbf7d0; text-align: center; }
     .countdown-card h3 { color: #166534; }
     .countdown-time { font-weight: 700; color: #166534; margin: 10px 0 4px 0; letter-spacing: -0.5px; }
     .countdown-subtext { font-size: 14px; color: #15803d; margin: 0; font-weight: 500; }
     .loading-status { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 4px; display: none; }
+
+    /* 📱 MOBILE SCREEN REORDERING MAGIC */
+    @media (max-width: 767px) {
+      .countdown-card {
+        order: -1; /* Pushes countdown directly beneath the title banner on phones */
+      }
+    }
   </style>
 </head>
 <body>
@@ -219,9 +208,24 @@
     <img src="Louby.webp" alt="Louby and Dog" class="welcome-avatar" />
   </div>
 
-  <!-- TOP HEADER HUB -->
-  <div class="header-hub">
+  <div class="dashboard-grid">
     
+    <!-- WEEKEND COUNTDOWN (Pushed to the top on mobile) -->
+    <div class="card countdown-card">
+      <h3>🎉 Weekend Countdown</h3>
+      <div id="countdown-display" class="countdown-time">Calculating...</div>
+      <p id="countdown-subtext" class="countdown-subtext">Until home time!</p>
+    </div>
+
+    <!-- FAMILY PHOTO DROP FRAME -->
+    <div class="card">
+      <h3>📸 Family Photo Drop</h3>
+      <input type="file" id="photoInput" accept="image/*" class="hidden-file-input" onchange="handlePhotoUpload()">
+      <button class="wide-btn btn-purple" onclick="document.getElementById('photoInput').click()">📷 Drop New Photo</button>
+      <div id="photoLoadStatus" class="loading-status">Uploading to family vault...</div>
+      <div id="photoGrid" class="photo-frame-grid"></div>
+    </div>
+
     <!-- KAURI WEATHER WIDGET -->
     <div class="card">
       <h3>🌤️ Kauri Weather</h3>
@@ -234,23 +238,6 @@
       <a href="https://mail.google.com" target="_blank" class="inbox-btn">Open My Email</a>
     </div>
 
-    <!-- PASSWORD HINTS WIDGET -->
-    <div class="card">
-      <h3>🔑 Password Hints</h3>
-      <div class="input-row">
-        <input type="text" id="siteInput" placeholder="Site (e.g. Netflix)" style="flex: 1;" />
-        <input type="text" id="hintInput" placeholder="Hint" style="flex: 1;" />
-      </div>
-      <button class="wide-btn btn-blue" id="hintBtn" onclick="addHint()">💾 Save Hint</button>
-      <div id="hintLoadStatus" class="loading-status">Syncing changes...</div>
-      <ul id="hintList" class="dashboard-list"></ul>
-    </div>
-
-  </div>
-
-  <!-- MAIN LOWER GRID -->
-  <div class="main-grid">
-    
     <!-- TV WATCHLIST -->
     <div class="card">
       <h3>📺 Shows to Watch</h3>
@@ -270,11 +257,16 @@
       <ul id="showList" class="dashboard-list"></ul>
     </div>
 
-    <!-- REAL-TIME SECONDS WEEKEND COUNTDOWN -->
-    <div class="card countdown-card">
-      <h3>🎉 Weekend Countdown</h3>
-      <div id="countdown-display" class="countdown-time">Calculating...</div>
-      <p id="countdown-subtext" class="countdown-subtext">Until home time!</p>
+    <!-- PASSWORD HINTS WIDGET -->
+    <div class="card">
+      <h3>🔑 Password Hints</h3>
+      <div class="input-row">
+        <input type="text" id="siteInput" placeholder="Site (e.g. Netflix)" style="flex: 1;" />
+        <input type="text" id="hintInput" placeholder="Hint" style="flex: 1;" />
+      </div>
+      <button class="wide-btn btn-blue" id="hintBtn" onclick="addHint()">💾 Save Hint</button>
+      <div id="hintLoadStatus" class="loading-status">Syncing changes...</div>
+      <ul id="hintList" class="dashboard-list"></ul>
     </div>
 
     <!-- TECH PANIC BUTTON -->
@@ -291,12 +283,11 @@
     </div>
 
   </div>
-
 </div>
 
 <script>
-  // Live Cloud Script URL Bridge Attached Below
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1rH3LteJRk2JMtPYsqcmIkipdlw5rH0545oPoYvesR37sGhW2KaRI6QYZOM11Te-uWg/exec';
+  // Paste your unique Google Script URL between the single quotes below:
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwdaxrrlahxHDav4R0o3E2XXPu6EIQbzp1wOrcYRcm3lXqRsw2RTtUhnGmJQpJf3BJwUg/exec';
 
   document.addEventListener('DOMContentLoaded', () => {
     fetchWeather();
@@ -304,17 +295,63 @@
     startCountdown();
   });
 
-  // 1. DATA SYNC LOGIC
+  // 1. DATA SYNC LOGIC (Watchlist, Hints, & Photos)
   async function syncCloudData() {
     try {
       const response = await fetch(`${SCRIPT_URL}?action=read`);
       const data = await response.json();
       renderShows(data.watchlist);
       renderHints(data.hints);
+      renderPhotos(data.photos);
     } catch (e) { console.error("Error reading database", e); }
   }
 
-  // 2. PINPOINT KAURI WEATHER LOGIC
+  // 2. PHOTO DROP ACTIONS
+  async function handlePhotoUpload() {
+    const fileInput = document.getElementById('photoInput');
+    if (fileInput.files.length === 0) return;
+    
+    const file = fileInput.files[0];
+    document.getElementById('photoLoadStatus').style.display = 'block';
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      const base64String = e.target.result.split(',')[1];
+      const payload = {
+        action: "uploadPhoto",
+        filename: file.name,
+        mimeType: file.type,
+        base64String: base64String
+      };
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        await syncCloudData();
+      } catch(err) { console.error(err); }
+      document.getElementById('photoLoadStatus').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function renderPhotos(photos) {
+    const grid = document.getElementById('photoGrid');
+    grid.innerHTML = '';
+    if(!photos || photos.length === 0) {
+      grid.innerHTML = '<div style="grid-column: span 2; color:#94a3b8; text-align:center; padding:20px; font-size:14px;">No photos dropped yet!</div>';
+      return;
+    }
+    photos.forEach(photo => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'photo-wrapper';
+      wrapper.innerHTML = `<img src="${photo.url}" alt="Family Photo" loading="lazy">`;
+      grid.appendChild(wrapper);
+    });
+  }
+
+  // 3. PINPOINT KAURI WEATHER LOGIC
   async function fetchWeather() {
     try {
       const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-35.6465&longitude=174.2945&current_weather=true');
@@ -331,12 +368,11 @@
     } catch (e) { document.getElementById('weather-display').innerHTML = "Weather currently offline"; }
   }
 
-  // 3. PASSWORD HINTS WEB CALLS
+  // 4. PASSWORD HINTS
   async function addHint() {
     const siteEl = document.getElementById('siteInput');
     const hintEl = document.getElementById('hintInput');
     if (siteEl.value.trim() === '' || hintEl.value.trim() === '') return;
-    
     document.getElementById('hintLoadStatus').style.display = 'block';
     await fetch(`${SCRIPT_URL}?action=addHint&site=${encodeURIComponent(siteEl.value)}&hint=${encodeURIComponent(hintEl.value)}`);
     siteEl.value = ''; hintEl.value = '';
@@ -361,12 +397,11 @@
     });
   }
 
-  // 4. WATCHLIST WEB CALLS
+  // 5. WATCHLIST
   async function addShow() {
     const input = document.getElementById('showInput');
     const netSelect = document.getElementById('networkSelect');
     if (input.value.trim() === '') return;
-
     document.getElementById('showLoadStatus').style.display = 'block';
     await fetch(`${SCRIPT_URL}?action=addShow&name=${encodeURIComponent(input.value)}&network=${encodeURIComponent(netSelect.value)}`);
     input.value = '';
@@ -392,13 +427,12 @@
       if (show.network === 'TVNZ+') bCls = 'badge-tvnz';
       if (show.network === 'ThreeNow') bCls = 'badge-threenow';
       if (show.network === 'Neon') bCls = 'badge-neon';
-
       li.innerHTML = `<div class="show-details"><span class="show-name">${show.name}</span><span class="network-badge ${bCls}">${show.network}</span></div><button class="done-btn" onclick="removeShow(${index})">✓ Done</button>`;
       list.appendChild(li);
     });
   }
 
-  // 5. PRECISION WEEKEND COUNTDOWN
+  // 6. PRECISION COUNTDOWN
   function startCountdown() { updateClock(); setInterval(updateClock, 1000); }
   function updateClock() {
     const now = new Date();
