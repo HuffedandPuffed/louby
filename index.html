@@ -270,7 +270,7 @@
 </div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxMsBDokCfkD6j1N01FVKzh1l84EDmO5tAWeQMpB3mwQKEBFv1vkB3CXpGZplScMzr6cw/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw3Zwj8RP1spP9SzD_ygd2hOsYAOP6cKZ62rHXJgis01DfaK8us2rKtmJxA_WhJX-_qwQ/exec';
 
   document.addEventListener('DOMContentLoaded', () => {
     fetchWeather();
@@ -298,20 +298,20 @@
     const reader = new FileReader();
     reader.onload = async function(e) {
       const base64String = e.target.result.split(',')[1];
-      const payload = {
-        action: "uploadPhoto",
-        filename: file.name,
-        mimeType: file.type,
-        base64String: base64String
-      };
+      
+      const params = new URLSearchParams();
+      params.append('action', 'uploadPhoto');
+      params.append('filename', file.name);
+      params.append('mimeType', file.type);
+      params.append('base64String', base64String);
 
       try {
         await fetch(SCRIPT_URL, {
           method: 'POST',
-          mode: 'no-cors',
-          body: JSON.stringify(payload)
+          body: params
         });
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        // Clear out the system lag delay
+        await new Promise(resolve => setTimeout(resolve, 3500));
         await syncCloudData();
       } catch(err) { console.error(err); }
       document.getElementById('photoLoadStatus').style.display = 'none';
