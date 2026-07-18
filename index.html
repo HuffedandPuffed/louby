@@ -45,7 +45,6 @@
       font-size: 28px;
     }
 
-    /* Unified Grid System */
     .dashboard-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -71,11 +70,9 @@
       letter-spacing: 0.75px;
     }
 
-    /* Weather */
     .temp-big { font-size: 42px; font-weight: 700; color: #0f172a; line-height: 1; }
     .condition-text { font-size: 16px; color: #64748b; margin-top: 6px; }
 
-    /* Quick Links */
     .inbox-btn {
       display: block;
       text-align: center;
@@ -90,7 +87,6 @@
     }
     .inbox-btn:hover { background-color: #c53023; }
 
-    /* Forms & Inputs */
     .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
     .input-row input, .input-row select {
       padding: 12px;
@@ -126,7 +122,6 @@
       font-size: 15px;
     }
 
-    /* Photo Drop Styling */
     .photo-frame-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -149,7 +144,6 @@
     }
     .hidden-file-input { display: none; }
 
-    /* Watchlist styling */
     .show-details { display: flex; flex-direction: column; gap: 4px; }
     .show-name { font-size: 16px; font-weight: 500; color: #1e293b; }
     .network-badge {
@@ -173,7 +167,6 @@
       padding: 6px 12px; font-size: 14px; border-radius: 6px; cursor: pointer;
     }
 
-    /* Tech Panic */
     .panic-card { background: #fff5f5; border: 1px solid #feb2b2; }
     .panic-card h3 { color: #e53e3e; }
     .panic-btn {
@@ -184,17 +177,15 @@
     .panic-steps ol { margin: 0; padding-left: 18px; }
     .panic-steps li { font-size: 14px; color: #4a5568; margin-bottom: 8px; line-height: 1.4; }
 
-    /* Weekend Countdown Styles */
     .countdown-card { background: #f0fdf4; border: 1px solid #bbf7d0; text-align: center; }
     .countdown-card h3 { color: #166534; }
     .countdown-time { font-weight: 700; color: #166534; margin: 10px 0 4px 0; letter-spacing: -0.5px; }
     .countdown-subtext { font-size: 14px; color: #15803d; margin: 0; font-weight: 500; }
     .loading-status { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 4px; display: none; }
 
-    /* 📱 MOBILE SCREEN REORDERING MAGIC */
     @media (max-width: 767px) {
       .countdown-card {
-        order: -1; /* Pushes countdown directly beneath the title banner on phones */
+        order: -1;
       }
     }
   </style>
@@ -210,14 +201,12 @@
 
   <div class="dashboard-grid">
     
-    <!-- WEEKEND COUNTDOWN (Pushed to the top on mobile) -->
     <div class="card countdown-card">
       <h3>🎉 Weekend Countdown</h3>
       <div id="countdown-display" class="countdown-time">Calculating...</div>
       <p id="countdown-subtext" class="countdown-subtext">Until home time!</p>
     </div>
 
-    <!-- FAMILY PHOTO DROP FRAME -->
     <div class="card">
       <h3>📸 Family Photo Drop</h3>
       <input type="file" id="photoInput" accept="image/*" class="hidden-file-input" onchange="handlePhotoUpload()">
@@ -226,19 +215,16 @@
       <div id="photoGrid" class="photo-frame-grid"></div>
     </div>
 
-    <!-- KAURI WEATHER WIDGET -->
     <div class="card">
       <h3>🌤️ Kauri Weather</h3>
       <div id="weather-display">Loading local weather...</div>
     </div>
 
-    <!-- ONE-CLICK INBOX -->
     <div class="card">
       <h3>✉️ Quick Access</h3>
       <a href="https://mail.google.com" target="_blank" class="inbox-btn">Open My Email</a>
     </div>
 
-    <!-- TV WATCHLIST -->
     <div class="card">
       <h3>📺 Shows to Watch</h3>
       <div class="input-row">
@@ -257,7 +243,6 @@
       <ul id="showList" class="dashboard-list"></ul>
     </div>
 
-    <!-- PASSWORD HINTS WIDGET -->
     <div class="card">
       <h3>🔑 Password Hints</h3>
       <div class="input-row">
@@ -269,7 +254,6 @@
       <ul id="hintList" class="dashboard-list"></ul>
     </div>
 
-    <!-- TECH PANIC BUTTON -->
     <div class="card panic-card">
       <h3>🛑 Tech Panic Button</h3>
       <button class="panic-btn" onclick="window.location.reload();">🔄 Fix & Reset Page</button>
@@ -286,8 +270,7 @@
 </div>
 
 <script>
-  // Your exact new web app script deployment URL:
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZ28lSo5hImEZnYX94_SrkfxK0O0u-acNXoeSiolE0kQSnkY06z9kXnqI3o2_q5_5vlg/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxMsBDokCfkD6j1N01FVKzh1l84EDmO5tAWeQMpB3mwQKEBFv1vkB3CXpGZplScMzr6cw/exec';
 
   document.addEventListener('DOMContentLoaded', () => {
     fetchWeather();
@@ -295,7 +278,6 @@
     startCountdown();
   });
 
-  // 1. DATA SYNC LOGIC (Watchlist, Hints, & Photos)
   async function syncCloudData() {
     try {
       const response = await fetch(`${SCRIPT_URL}?action=read`);
@@ -306,7 +288,6 @@
     } catch (e) { console.error("Error reading database", e); }
   }
 
-  // 2. PHOTO DROP ACTIONS
   async function handlePhotoUpload() {
     const fileInput = document.getElementById('photoInput');
     if (fileInput.files.length === 0) return;
@@ -327,8 +308,10 @@
       try {
         await fetch(SCRIPT_URL, {
           method: 'POST',
+          mode: 'no-cors',
           body: JSON.stringify(payload)
         });
+        await new Promise(resolve => setTimeout(resolve, 3000));
         await syncCloudData();
       } catch(err) { console.error(err); }
       document.getElementById('photoLoadStatus').style.display = 'none';
@@ -351,7 +334,6 @@
     });
   }
 
-  // 3. PINPOINT KAURI WEATHER LOGIC
   async function fetchWeather() {
     try {
       const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-35.6465&longitude=174.2945&current_weather=true');
@@ -368,7 +350,6 @@
     } catch (e) { document.getElementById('weather-display').innerHTML = "Weather currently offline"; }
   }
 
-  // 4. PASSWORD HINTS
   async function addHint() {
     const siteEl = document.getElementById('siteInput');
     const hintEl = document.getElementById('hintInput');
@@ -397,7 +378,6 @@
     });
   }
 
-  // 5. WATCHLIST
   async function addShow() {
     const input = document.getElementById('showInput');
     const netSelect = document.getElementById('networkSelect');
@@ -432,7 +412,6 @@
     });
   }
 
-  // 6. PRECISION COUNTDOWN
   function startCountdown() { updateClock(); setInterval(updateClock, 1000); }
   function updateClock() {
     const now = new Date();
