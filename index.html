@@ -270,7 +270,7 @@
 </div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwrK-dwqUbexso5nK8abka_vInPxQarV-U9jS0n1-ot14M3S-kpme9oqFc3bN5F-gk6vw/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxvS3sJONRTRapiWZ6x2ILLyIXsiXBcR1RCb4tWEfjkbJBf0VJ6Xg2bT3lbk4ESWuaTXw/exec';
 
   document.addEventListener('DOMContentLoaded', () => {
     fetchWeather();
@@ -288,7 +288,6 @@
     } catch (e) { console.error("Error reading database", e); }
   }
 
-  // INTERNALLY COMPRESS LARGE SMARTPHONE PHOTOS
   async function handlePhotoUpload() {
     const fileInput = document.getElementById('photoInput');
     if (fileInput.files.length === 0) return;
@@ -335,9 +334,10 @@
         try {
           await fetch(SCRIPT_URL, {
             method: 'POST',
+            mode: 'no-cors',
             body: params
           });
-          await new Promise(resolve => setTimeout(resolve, 3500));
+          await new Promise(resolve => setTimeout(resolve, 4000));
           await syncCloudData();
         } catch(err) { console.error(err); }
         document.getElementById('photoLoadStatus').style.display = 'none';
