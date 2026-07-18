@@ -211,7 +211,7 @@
       <h3>📸 Family Photo Drop</h3>
       <input type="file" id="photoInput" accept="image/*" class="hidden-file-input" onchange="handlePhotoUpload()">
       <button class="wide-btn btn-purple" onclick="document.getElementById('photoInput').click()">📷 Drop New Photo</button>
-      <div id="photoLoadStatus" class="loading-status">Uploading to family vault...</div>
+      <div id="photoLoadStatus" class="loading-status">Compressing & uploading image...</div>
       <div id="photoGrid" class="photo-frame-grid"></div>
     </div>
 
@@ -270,7 +270,7 @@
 </div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw3Zwj8RP1spP9SzD_ygd2hOsYAOP6cKZ62rHXJgis01DfaK8us2rKtmJxA_WhJX-_qwQ/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwrK-dwqUbexso5nK8abka_vInPxQarV-U9jS0n1-ot14M3S-kpme9oqFc3bN5F-gk6vw/exec';
 
   document.addEventListener('DOMContentLoaded', () => {
     fetchWeather();
@@ -288,6 +288,7 @@
     } catch (e) { console.error("Error reading database", e); }
   }
 
+  // INTERNALLY COMPRESS LARGE SMARTPHONE PHOTOS
   async function handlePhotoUpload() {
     const fileInput = document.getElementById('photoInput');
     if (fileInput.files.length === 0) return;
@@ -296,25 +297,52 @@
     document.getElementById('photoLoadStatus').style.display = 'block';
 
     const reader = new FileReader();
-    reader.onload = async function(e) {
-      const base64String = e.target.result.split(',')[1];
-      
-      const params = new URLSearchParams();
-      params.append('action', 'uploadPhoto');
-      params.append('filename', file.name);
-      params.append('mimeType', file.type);
-      params.append('base64String', base64String);
+    reader.onload = function(event) {
+      const img = new Image();
+      img.onload = async function() {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
 
-      try {
-        await fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: params
-        });
-        // Clear out the system lag delay
-        await new Promise(resolve => setTimeout(resolve, 3500));
-        await syncCloudData();
-      } catch(err) { console.error(err); }
-      document.getElementById('photoLoadStatus').style.display = 'none';
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+        const base64String = dataUrl.split(',')[1];
+        
+        const params = new URLSearchParams();
+        params.append('action', 'uploadPhoto');
+        params.append('filename', file.name.replace(/\.[^/.]+$/, "") + ".jpg");
+        params.append('mimeType', 'image/jpeg');
+        params.append('base64String', base64String);
+
+        try {
+          await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: params
+          });
+          await new Promise(resolve => setTimeout(resolve, 3500));
+          await syncCloudData();
+        } catch(err) { console.error(err); }
+        document.getElementById('photoLoadStatus').style.display = 'none';
+      };
+      img.src = event.target.result;
     };
     reader.readAsDataURL(file);
   }
