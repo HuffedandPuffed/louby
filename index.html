@@ -305,31 +305,62 @@
     await checkIncomingUrl();
     await fetchCloudData();
 
-    // Auto-sync every 8 seconds across all devices for all cards
-    setInterval(fetchCloudData, 8000);
+    // Sync across all devices every 6 seconds
+    setInterval(fetchCloudData, 6000);
   });
 
-  /* --- FULL DASHBOARD CLOUD SYNC --- */
+  /* --- FULL DASHBOARD SMART-MERGE SYNC --- */
   async function fetchCloudData() {
     if (isSyncing) return;
     try {
       const cacheBusterUrl = GOOGLE_SCRIPT_URL + '?t=' + Date.now();
       const response = await fetch(cacheBusterUrl);
       if (response.ok) {
-        const data = await response.json();
-        if (data) {
-          if (Array.isArray(data.shop)) localStorage.setItem(SHOP_KEY, JSON.stringify(data.shop));
-          if (Array.isArray(data.scratch)) localStorage.setItem(SCRATCH_KEY, JSON.stringify(data.scratch));
-          if (Array.isArray(data.shows)) localStorage.setItem(SHOW_KEY, JSON.stringify(data.shows));
+        const cloudData = await response.json();
+        if (cloudData) {
+          let needsUpload = false;
+
+          // Merge Wishlist
+          const localShop = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
+          const mergedShop = mergeLists(cloudData.shop || [], localShop, (a, b) => a.name === b.name || (a.link && a.link === b.link));
+          if (mergedShop.length > (cloudData.shop || []).length) needsUpload = true;
+          localStorage.setItem(SHOP_KEY, JSON.stringify(mergedShop));
+
+          // Merge Scratchpad
+          const localScratch = JSON.parse(localStorage.getItem(SCRATCH_KEY) || '[]');
+          const mergedScratch = mergeLists(cloudData.scratch || [], localScratch, (a, b) => a === b);
+          if (mergedScratch.length > (cloudData.scratch || []).length) needsUpload = true;
+          localStorage.setItem(SCRATCH_KEY, JSON.stringify(mergedScratch));
+
+          // Merge Watchlist
+          const localShows = JSON.parse(localStorage.getItem(SHOW_KEY) || '[]');
+          const mergedShows = mergeLists(cloudData.shows || [], localShows, (a, b) => a.name === b.name);
+          if (mergedShows.length > (cloudData.shows || []).length) needsUpload = true;
+          localStorage.setItem(SHOW_KEY, JSON.stringify(mergedShows));
 
           renderShopItems();
           renderScratch();
           renderShows();
+
+          // If device had local items not in cloud (like Watchlist), push merged version to Cloud
+          if (needsUpload) {
+            await saveCloudData();
+          }
         }
       }
     } catch (err) {
       console.log('Cloud fetch error', err);
     }
+  }
+
+  function mergeLists(cloudList, localList, compareFn) {
+    const result = [...cloudList];
+    localList.forEach(localItem => {
+      if (!result.some(cloudItem => compareFn(cloudItem, localItem))) {
+        result.push(localItem);
+      }
+    });
+    return result;
   }
 
   async function saveCloudData() {
@@ -341,8 +372,12 @@
         shows: JSON.parse(localStorage.getItem(SHOW_KEY) || '[]')
       };
 
-      const saveUrl = GOOGLE_SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(payload)) + '&t=' + Date.now();
-      await fetch(saveUrl);
+      // POST method handles unlimited payload size securely
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
     } catch (err) {
       console.log('Cloud save error', err);
     } finally {
