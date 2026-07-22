@@ -154,10 +154,10 @@
 
   <div class="dashboard-grid">
     
-    <!-- GMAIL APP BUTTON -->
+    <!-- GMAIL INBOX BUTTON -->
     <div class="card">
       <h3>✉️ Quick Inbox</h3>
-      <a href="https://mail.google.com" onclick="openGmailApp(event)" class="inbox-btn">Open Gmail App</a>
+      <a href="https://mail.google.com" target="_blank" class="inbox-btn">Open Gmail Inbox</a>
     </div>
 
     <!-- WEEKEND COUNTDOWN -->
@@ -227,21 +227,6 @@
     renderHints();
     renderShows();
   });
-
-  // GMAIL APP LAUNCHER
-  function openGmailApp(e) {
-    if (e) e.preventDefault();
-    const isAndroid = /android/i.test(navigator.userAgent);
-    const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-    if (isAndroid) {
-      window.location.href = "intent://mail.google.com/#Intent;scheme=https;package=com.google.android.gm;end";
-    } else if (isiOS) {
-      window.location.href = "googlegmail://";
-    } else {
-      window.open("https://mail.google.com", "_blank");
-    }
-  }
 
   /* --- DIGITAL SCRATCHPAD LOGIC --- */
   function addScratch(e) {
