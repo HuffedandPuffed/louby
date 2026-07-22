@@ -211,11 +211,11 @@
     <div class="card">
       <h3>🚀 Quick Launchpad</h3>
       <div class="quicklinks-grid">
-        <a href="https://www.temu.com" target="_blank" class="quicklink-card">
+        <a href="https://www.temu.co.nz" target="_blank" class="quicklink-card">
           <span class="quicklink-icon">🧡</span>
           <span>Temu</span>
         </a>
-        <a href="https://www.amazon.com" target="_blank" class="quicklink-card">
+        <a href="https://www.amazon.co.uk" target="_blank" class="quicklink-card">
           <span class="quicklink-icon">📦</span>
           <span>Amazon</span>
         </a>
@@ -305,7 +305,6 @@
     let title = params.get('title');
 
     if (link) {
-      // Android often combines raw text + link into 'text', so extract the URL
       const urlMatch = link.match(/(https?:\/\/[^\s]+)/g);
       if (urlMatch) {
         link = urlMatch[0];
@@ -313,11 +312,10 @@
 
       if (link.startsWith('http')) {
         let itemName = title || 'Saved Item';
-        itemName = itemName.replace(/ \| Temu/gi, '').replace(/: Amazon.com.*/gi, '').trim();
+        itemName = itemName.replace(/ \| Temu/gi, '').replace(/: Amazon.co.uk.*/gi, '').replace(/: Amazon.com.*/gi, '').trim();
 
         const items = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
         
-        // Prevent accidental duplicates on page refresh
         const exists = items.some(i => i.link === link);
         if (!exists) {
           items.push({ name: itemName, link: link });
