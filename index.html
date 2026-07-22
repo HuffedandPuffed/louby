@@ -177,9 +177,9 @@
     <div class="card" style="background: #fffdf9; border: 1px solid #fde68a;">
       <h3 style="color: #b45309;">📝 Digital Scratchpad</h3>
       <div class="input-row">
-        <input type="text" id="scratchInput" placeholder="Jot down a quick note or reminder...">
+        <input type="text" id="scratchInput" placeholder="Jot down a quick note or reminder..." onkeydown="if(event.key==='Enter'){event.preventDefault();addScratch();}">
       </div>
-      <button class="wide-btn btn-blue" onclick="addScratch()">Add Note</button>
+      <button type="button" class="wide-btn btn-blue" onclick="addScratch(event)">Add Note</button>
       <ul id="scratchList" class="dashboard-list"></ul>
     </div>
 
@@ -187,10 +187,10 @@
     <div class="card">
       <h3>🔑 Password Hints</h3>
       <div class="input-row">
-        <input type="text" id="siteInput" placeholder="Website / App">
-        <input type="text" id="hintInput" placeholder="Hint">
+        <input type="text" id="siteInput" placeholder="Website / App" onkeydown="if(event.key==='Enter'){event.preventDefault();addHint();}">
+        <input type="text" id="hintInput" placeholder="Hint" onkeydown="if(event.key==='Enter'){event.preventDefault();addHint();}">
       </div>
-      <button class="wide-btn btn-blue" onclick="addHint()">Add Hint</button>
+      <button type="button" class="wide-btn btn-blue" onclick="addHint(event)">Add Hint</button>
       <ul id="hintList" class="dashboard-list"></ul>
     </div>
 
@@ -198,7 +198,7 @@
     <div class="card">
       <h3>📺 TV Watchlist</h3>
       <div class="input-row">
-        <input type="text" id="showInput" placeholder="Show name">
+        <input type="text" id="showInput" placeholder="Show name" onkeydown="if(event.key==='Enter'){event.preventDefault();addShow();}">
         <select id="networkSelect">
           <option value="Netflix">Netflix</option>
           <option value="TVNZ+">TVNZ+</option>
@@ -208,7 +208,7 @@
           <option value="Other">Other</option>
         </select>
       </div>
-      <button class="wide-btn btn-blue" onclick="addShow()">Add Show</button>
+      <button type="button" class="wide-btn btn-blue" onclick="addShow(event)">Add Show</button>
       <ul id="showList" class="dashboard-list"></ul>
     </div>
 
@@ -228,7 +228,7 @@
     renderShows();
   });
 
-  // DIRECT GMAIL APP LAUNCHER (Prevents Google Play Store Redirects)
+  // GMAIL APP LAUNCHER
   function openGmailApp(e) {
     if (e) e.preventDefault();
     const isAndroid = /android/i.test(navigator.userAgent);
@@ -244,7 +244,8 @@
   }
 
   /* --- DIGITAL SCRATCHPAD LOGIC --- */
-  function addScratch() {
+  function addScratch(e) {
+    if (e) e.preventDefault();
     const input = document.getElementById('scratchInput');
     const val = input.value.trim();
     if (!val) return;
@@ -268,13 +269,14 @@
     list.innerHTML = '';
     items.forEach((text, index) => {
       const li = document.createElement('li');
-      li.innerHTML = `<span>${escapeHtml(text)}</span><button class="delete-item-btn" onclick="removeScratch(${index})">✕</button>`;
+      li.innerHTML = `<span>${escapeHtml(text)}</span><button type="button" class="delete-item-btn" onclick="removeScratch(${index})">✕</button>`;
       list.appendChild(li);
     });
   }
 
   /* --- PASSWORD HINTS LOGIC --- */
-  function addHint() {
+  function addHint(e) {
+    if (e) e.preventDefault();
     const siteEl = document.getElementById('siteInput');
     const hintEl = document.getElementById('hintInput');
     const site = siteEl.value.trim();
@@ -301,13 +303,14 @@
     list.innerHTML = '';
     items.forEach((item, index) => {
       const li = document.createElement('li');
-      li.innerHTML = `<div><strong>${escapeHtml(item.site)}:</strong> <span>${escapeHtml(item.hint)}</span></div><button class="delete-item-btn" onclick="removeHint(${index})">✕</button>`;
+      li.innerHTML = `<div><strong>${escapeHtml(item.site)}:</strong> <span>${escapeHtml(item.hint)}</span></div><button type="button" class="delete-item-btn" onclick="removeHint(${index})">✕</button>`;
       list.appendChild(li);
     });
   }
 
   /* --- TV WATCHLIST LOGIC --- */
-  function addShow() {
+  function addShow(e) {
+    if (e) e.preventDefault();
     const input = document.getElementById('showInput');
     const netSelect = document.getElementById('networkSelect');
     const name = input.value.trim();
@@ -338,7 +341,7 @@
       if (show.network === 'TVNZ+') bCls = 'badge-tvnz';
       if (show.network === 'ThreeNow') bCls = 'badge-threenow';
       if (show.network === 'Neon') bCls = 'badge-neon';
-      li.innerHTML = `<div class="show-details"><span class="show-name">${escapeHtml(show.name)}</span><span class="network-badge ${bCls}">${escapeHtml(show.network)}</span></div><button class="done-btn" onclick="removeShow(${index})">✓ Done</button>`;
+      li.innerHTML = `<div class="show-details"><span class="show-name">${escapeHtml(show.name)}</span><span class="network-badge ${bCls}">${escapeHtml(show.network)}</span></div><button type="button" class="done-btn" onclick="removeShow(${index})">✓ Done</button>`;
       list.appendChild(li);
     });
   }
