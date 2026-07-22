@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Louby's Website</title>
+  <link rel="manifest" href="manifest.json">
   <style>
     body {
       background-color: #f4f6f9;
@@ -297,21 +298,34 @@
     renderShopItems();
   });
 
-  /* --- CHECK FOR LINKS SENT FROM TEMU/AMAZON BOOKMARKLET --- */
+  /* --- HANDLES LINKS FROM DESKTOP BOOKMARKLET & ANDROID SHARE MENU --- */
   function checkIncomingUrl() {
     const params = new URLSearchParams(window.location.search);
-    const link = params.get('addLink');
-    const title = params.get('title');
+    let link = params.get('addLink') || params.get('url') || params.get('text');
+    let title = params.get('title');
 
     if (link) {
-      let itemName = title || 'Saved Item';
-      itemName = itemName.replace(/ \| Temu/gi, '').replace(/: Amazon.com.*/gi, '').trim();
+      // Android often combines raw text + link into 'text', so extract the URL
+      const urlMatch = link.match(/(https?:\/\/[^\s]+)/g);
+      if (urlMatch) {
+        link = urlMatch[0];
+      }
 
-      const items = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
-      items.push({ name: itemName, link: link });
-      localStorage.setItem(SHOP_KEY, JSON.stringify(items));
+      if (link.startsWith('http')) {
+        let itemName = title || 'Saved Item';
+        itemName = itemName.replace(/ \| Temu/gi, '').replace(/: Amazon.com.*/gi, '').trim();
 
-      window.history.replaceState({}, document.title, window.location.pathname);
+        const items = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
+        
+        // Prevent accidental duplicates on page refresh
+        const exists = items.some(i => i.link === link);
+        if (!exists) {
+          items.push({ name: itemName, link: link });
+          localStorage.setItem(SHOP_KEY, JSON.stringify(items));
+        }
+
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
     }
   }
 
