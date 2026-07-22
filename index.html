@@ -28,7 +28,7 @@
       padding: 16px 24px;
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      border: 2px solid #d8b4fe; /* Matching light purple border */
+      border: 2px solid #d8b4fe;
     }
 
     .welcome-banner h1 {
@@ -45,14 +45,13 @@
       align-items: start;
     }
 
-    /* ALL SECTIONS HAVE THE SAME LIGHT PURPLE BORDER */
     .card {
       background: #ffffff;
       padding: 24px;
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       box-sizing: border-box;
-      border: 2px solid #d8b4fe; /* Uniform Light Purple Border */
+      border: 2px solid #d8b4fe;
     }
 
     .card h3 {
@@ -66,14 +65,14 @@
 
     /* COUNTDOWN STYLES */
     .countdown-black {
-      color: #000000 !important; /* Solid Black Digits */
+      color: #000000 !important;
       font-size: 34px;
       font-weight: 700;
       line-height: 1.1;
     }
 
     .weekend-gold {
-      color: #eab308 !important; /* Gold for Weekend Mode */
+      color: #eab308 !important;
       font-size: 30px;
       font-weight: 700;
       line-height: 1.1;
@@ -82,6 +81,38 @@
     .temp-big { font-size: 42px; font-weight: 700; color: #0f172a; line-height: 1; }
     .condition-text { font-size: 16px; color: #64748b; margin-top: 6px; }
 
+    /* QUICKLINKS STYLES */
+    .quicklinks-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .quicklink-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 6px;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      text-decoration: none;
+      color: #1e293b;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      transition: transform 0.1s, background-color 0.1s;
+    }
+    .quicklink-card:hover {
+      transform: translateY(-2px);
+      background-color: #f1f5f9;
+    }
+    .quicklink-icon {
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+
+    /* INPUT & BUTTON STYLES */
     .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
     .input-row input, .input-row select {
       padding: 12px;
@@ -117,8 +148,21 @@
       word-break: break-word;
     }
 
+    .action-sm-btn {
+      background-color: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      padding: 4px 10px;
+      font-size: 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.1s;
+    }
+    .action-sm-btn:hover { background-color: #e2e8f0; }
+
     .show-details { display: flex; flex-direction: column; gap: 4px; }
-    .show-name { font-size: 16px; font-weight: 500; color: #1e293b; }
+    .show-name { font-size: 16px; font-weight: 600; color: #1e293b; }
     .network-badge {
       display: inline-block;
       align-self: flex-start;
@@ -158,20 +202,64 @@
 
   <div class="dashboard-grid">
     
-    <!-- 1. WEEKEND COUNTDOWN (LIGHT PURPLE BACKGROUND) -->
+    <!-- 1. WEEKEND COUNTDOWN -->
     <div class="card" style="background-color: #f3e8ff;">
       <h3>⏳ Weekend Countdown</h3>
       <div id="countdown-display" class="countdown-black">--d --h --m --s</div>
       <p id="countdown-subtext" class="condition-text">Until Friday 5:00 PM! 🙌</p>
     </div>
 
-    <!-- 2. KAURI WEATHER -->
+    <!-- 2. QUICKLAUNCHPAD -->
+    <div class="card">
+      <h3>🚀 Quick Launchpad</h3>
+      <div class="quicklinks-grid">
+        <a href="https://www.temu.com" target="_blank" class="quicklink-card">
+          <span class="quicklink-icon">🧡</span>
+          <span>Temu</span>
+        </a>
+        <a href="https://www.amazon.com" target="_blank" class="quicklink-card">
+          <span class="quicklink-icon">📦</span>
+          <span>Amazon</span>
+        </a>
+        <a href="https://www.google.com" target="_blank" class="quicklink-card">
+          <span class="quicklink-icon">🔍</span>
+          <span>Google</span>
+        </a>
+        <a href="https://www.youtube.com" target="_blank" class="quicklink-card">
+          <span class="quicklink-icon">▶️</span>
+          <span>YouTube</span>
+        </a>
+        <a href="https://mail.google.com" target="_blank" class="quicklink-card">
+          <span class="quicklink-icon">✉️</span>
+          <span>Gmail</span>
+        </a>
+        <a href="https://www.stuff.co.nz" target="_blank" class="quicklink-card">
+          <span class="quicklink-icon">📰</span>
+          <span>NZ News</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- 3. KAURI WEATHER -->
     <div class="card">
       <h3>🌤️ Kauri Weather</h3>
       <div id="weather-display" class="condition-text">Loading local weather...</div>
     </div>
 
-    <!-- 3. DIGITAL SCRATCHPAD -->
+    <!-- 4. BUY LATER / WISHLIST -->
+    <div class="card">
+      <h3 style="color: #0d9488;">🛍️ Buy Later / Wishlist</h3>
+      <div class="input-row">
+        <input type="text" id="shopItemInput" placeholder="Item description (e.g. Red Slippers)" onkeydown="if(event.key==='Enter'){event.preventDefault();addShopItem();}">
+      </div>
+      <div class="input-row">
+        <input type="text" id="shopLinkInput" placeholder="Paste link here (optional)" onkeydown="if(event.key==='Enter'){event.preventDefault();addShopItem();}">
+      </div>
+      <button type="button" class="wide-btn btn-blue" onclick="addShopItem(event)">Save Item</button>
+      <ul id="shopList" class="dashboard-list"></ul>
+    </div>
+
+    <!-- 5. DIGITAL SCRATCHPAD -->
     <div class="card">
       <h3 style="color: #b45309;">📝 Digital Scratchpad</h3>
       <div class="input-row">
@@ -181,7 +269,7 @@
       <ul id="scratchList" class="dashboard-list"></ul>
     </div>
 
-    <!-- 4. TV WATCHLIST -->
+    <!-- 6. TV WATCHLIST -->
     <div class="card">
       <h3>📺 TV Watchlist</h3>
       <div class="input-row">
@@ -205,12 +293,14 @@
 <script>
   const SCRATCH_KEY = 'louby_scratchpad_data';
   const SHOW_KEY = 'louby_watchlist_data';
+  const SHOP_KEY = 'louby_shopping_data';
 
   document.addEventListener('DOMContentLoaded', () => {
     fetchWeather();
     startCountdown();
     renderScratch();
     renderShows();
+    renderShopItems();
   });
 
   /* --- WEEKEND COUNTDOWN LOGIC (Friday @ 17:00) --- */
@@ -225,7 +315,6 @@
     const display = document.getElementById('countdown-display');
     const subtext = document.getElementById('countdown-subtext');
 
-    // Weekend Mode
     if ((currentDay === 5 && now.getHours() >= 17) || currentDay === 6 || currentDay === 0) {
       display.innerText = "🏡 It's the Weekend!";
       display.className = "weekend-gold";
@@ -233,7 +322,6 @@
       return;
     }
 
-    // Workweek Mode
     let targetFriday = new Date(now);
     targetFriday.setHours(17, 0, 0, 0);
 
@@ -249,6 +337,79 @@
     display.innerText = `${d}d ${h}h ${m}m ${s}s`;
     display.className = "countdown-black";
     subtext.innerText = "Until Friday 5:00 PM! 🙌";
+  }
+
+  /* --- BUY LATER / WISHLIST LOGIC --- */
+  function addShopItem(e) {
+    if (e) e.preventDefault();
+    const itemEl = document.getElementById('shopItemInput');
+    const linkEl = document.getElementById('shopLinkInput');
+    const name = itemEl.value.trim();
+    let link = linkEl.value.trim();
+
+    if (!name && !link) return;
+
+    let itemName = name || 'Item Link';
+    if (link && !link.startsWith('http://') && !link.startsWith('https://')) {
+      link = 'https://' + link;
+    }
+
+    const items = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
+    items.push({ name: itemName, link: link });
+    localStorage.setItem(SHOP_KEY, JSON.stringify(items));
+
+    itemEl.value = '';
+    linkEl.value = '';
+    renderShopItems();
+  }
+
+  function removeShopItem(index) {
+    const items = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
+    items.splice(index, 1);
+    localStorage.setItem(SHOP_KEY, JSON.stringify(items));
+    renderShopItems();
+  }
+
+  function copyShopLink(link, btn) {
+    navigator.clipboard.writeText(link).then(() => {
+      const originalText = btn.innerText;
+      btn.innerText = 'Copied!';
+      btn.style.backgroundColor = '#22c55e';
+      btn.style.color = '#ffffff';
+      setTimeout(() => {
+        btn.innerText = originalText;
+        btn.style.backgroundColor = '';
+        btn.style.color = '';
+      }, 2000);
+    });
+  }
+
+  function renderShopItems() {
+    const list = document.getElementById('shopList');
+    const items = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
+    list.innerHTML = '';
+    items.forEach((item, index) => {
+      const li = document.createElement('li');
+      
+      let linkButtons = '';
+      if (item.link) {
+        linkButtons = `
+          <div style="display:flex; gap:6px; margin-top:6px;">
+            <a href="${escapeHtml(item.link)}" target="_blank" style="font-size:12px; color:#0284c7; text-decoration:none; font-weight:600; padding:4px 8px; background:#f0f9ff; border-radius:4px; border:1px solid #bae6fd;">🔗 Open</a>
+            <button type="button" class="action-sm-btn" onclick="copyShopLink('${escapeHtml(item.link)}', this)">📋 Copy Link</button>
+          </div>
+        `;
+      }
+
+      li.innerHTML = `
+        <div style="flex:1; padding-right:8px;">
+          <span class="show-name">${escapeHtml(item.name)}</span>
+          ${linkButtons}
+        </div>
+        <button type="button" class="done-btn" onclick="removeShopItem(${index})">✓ Bought</button>
+      `;
+      list.appendChild(li);
+    });
   }
 
   /* --- DIGITAL SCRATCHPAD LOGIC --- */
