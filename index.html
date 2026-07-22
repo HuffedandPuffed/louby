@@ -1,56 +1,208 @@
-<div class="scratchpad-container">
-  <h3>Digital Scratchpad</h3>
-  <!-- Input box -->
-  <input type="text" id="scratchInput" placeholder="Add a record..." />
-  <button onclick="addRecord()">Add</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Louby.com</title>
+  <style>
+    /* Basic Page Styling */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f7f9fc;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
 
-  <!-- Container for stored records underneath -->
-  <ul id="recordsList" style="list-style: none; padding: 0; margin-top: 15px;"></ul>
-</div>
+    .container {
+      max-width: 500px;
+      width: 100%;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-top: 40px;
+    }
 
-<script>
-  // Add a record to the list
-  function addRecord() {
-    const input = document.getElementById('scratchInput');
-    const val = input.value.trim();
-    if (!val) return;
+    h1 {
+      text-align: center;
+      margin-top: 0;
+      color: #1a1a1a;
+    }
 
-    createRecordElement(val);
-    saveRecords();
-    input.value = '';
-  }
+    /* Email Button Styling */
+    .email-section {
+      text-align: center;
+      margin-bottom: 30px;
+    }
 
-  // Create list item with delete button
-  function createRecordElement(text) {
-    const list = document.getElementById('recordsList');
-    const li = document.createElement('li');
-    li.style.margin = '8px 0';
-    li.style.display = 'flex';
-    li.style.justifyContent = 'space-between';
-    
-    li.innerHTML = `
-      <span>${text}</span>
-      <button onclick="removeRecord(this)" style="margin-left: 10px; cursor: pointer;">Delete</button>
-    `;
-    list.appendChild(li);
-  }
+    .btn-email {
+      display: inline-block;
+      background-color: #0066cc;
+      color: #ffffff;
+      padding: 12px 24px;
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: background-color 0.2s ease;
+    }
 
-  // Remove individual record
-  function removeRecord(btn) {
-    btn.parentElement.remove();
-    saveRecords();
-  }
+    .btn-email:hover {
+      background-color: #0052a3;
+    }
 
-  // Store in browser memory
-  function saveRecords() {
-    const records = [];
-    document.querySelectorAll('#recordsList span').forEach(el => records.push(el.textContent));
-    localStorage.setItem('scratchpadData', JSON.stringify(records));
-  }
+    hr {
+      border: 0;
+      height: 1px;
+      background: #e1e8ed;
+      margin: 30px 0;
+    }
 
-  // Reload records on page load
-  window.onload = function() {
-    const saved = JSON.parse(localStorage.getItem('scratchpadData') || '[]');
-    saved.forEach(text => createRecordElement(text));
-  };
-</script>
+    /* Scratchpad Component */
+    .scratchpad h2 {
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .input-group input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .input-group button {
+      padding: 10px 18px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .input-group button:hover {
+      background-color: #218838;
+    }
+
+    /* Scratchpad List */
+    #recordsList {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .record-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: #f1f3f5;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      word-break: break-word;
+    }
+
+    .btn-delete {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-left: 10px;
+    }
+
+    .btn-delete:hover {
+      background-color: #c82333;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Welcome to Louby</h1>
+
+    <!-- 1. DIRECT GMAIL / EMAIL BUTTON -->
+    <div class="email-section">
+      <!-- UPDATE HER EMAIL ADDRESS HERE -->
+      <a href="mailto:your-email@example.com" class="btn-email">✉ Open Email</a>
+    </div>
+
+    <hr>
+
+    <!-- 2. DIGITAL SCRATCHPAD -->
+    <div class="scratchpad">
+      <h2>Digital Scratchpad</h2>
+      <div class="input-group">
+        <input type="text" id="scratchInput" placeholder="Type a note or hint..." />
+        <button onclick="addRecord()">Add</button>
+      </div>
+
+      <!-- Saved records render directly underneath -->
+      <ul id="recordsList"></ul>
+    </div>
+  </div>
+
+  <script>
+    // JavaScript Logic for Scratchpad
+    function addRecord() {
+      const input = document.getElementById('scratchInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      createRecordElement(text);
+      saveRecords();
+      input.value = '';
+    }
+
+    function createRecordElement(text) {
+      const list = document.getElementById('recordsList');
+      const li = document.createElement('li');
+      li.className = 'record-item';
+      
+      li.innerHTML = `
+        <span>${escapeHtml(text)}</span>
+        <button class="btn-delete" onclick="removeRecord(this)">Delete</button>
+      `;
+      
+      list.appendChild(li);
+    }
+
+    function removeRecord(btn) {
+      btn.parentElement.remove();
+      saveRecords();
+    }
+
+    function saveRecords() {
+      const records = [];
+      document.querySelectorAll('#recordsList span').forEach(el => records.push(el.textContent));
+      localStorage.setItem('loubyScratchpadData', JSON.stringify(records));
+    }
+
+    function loadRecords() {
+      const saved = JSON.parse(localStorage.getItem('loubyScratchpadData') || '[]');
+      saved.forEach(text => createRecordElement(text));
+    }
+
+    // Prevents code injection in note input
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // Load saved entries when page loads
+    window.onload = loadRecords;
+  </script>
+
+</body>
+</html>
