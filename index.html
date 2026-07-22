@@ -82,20 +82,6 @@
     .temp-big { font-size: 42px; font-weight: 700; color: #0f172a; line-height: 1; }
     .condition-text { font-size: 16px; color: #64748b; margin-top: 6px; }
 
-    .inbox-btn {
-      display: block;
-      text-align: center;
-      background-color: #ea4335;
-      color: white;
-      padding: 14px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 16px;
-      margin-top: 6px;
-    }
-    .inbox-btn:hover { background-color: #c53023; }
-
     .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
     .input-row input, .input-row select {
       padding: 12px;
@@ -179,19 +165,13 @@
       <p id="countdown-subtext" class="condition-text">Until Friday 5:00 PM! 🙌</p>
     </div>
 
-    <!-- 2. GMAIL INBOX BUTTON -->
-    <div class="card">
-      <h3>✉️ Quick Inbox</h3>
-      <a href="https://mail.google.com" target="_blank" class="inbox-btn">Open Gmail Inbox</a>
-    </div>
-
-    <!-- 3. KAURI WEATHER -->
+    <!-- 2. KAURI WEATHER -->
     <div class="card">
       <h3>🌤️ Kauri Weather</h3>
       <div id="weather-display" class="condition-text">Loading local weather...</div>
     </div>
 
-    <!-- 4. DIGITAL SCRATCHPAD -->
+    <!-- 3. DIGITAL SCRATCHPAD -->
     <div class="card">
       <h3 style="color: #b45309;">📝 Digital Scratchpad</h3>
       <div class="input-row">
@@ -201,18 +181,7 @@
       <ul id="scratchList" class="dashboard-list"></ul>
     </div>
 
-    <!-- 5. PASSWORD HINTS -->
-    <div class="card">
-      <h3>🔑 Password Hints</h3>
-      <div class="input-row">
-        <input type="text" id="siteInput" placeholder="Website / App" onkeydown="if(event.key==='Enter'){event.preventDefault();addHint();}">
-        <input type="text" id="hintInput" placeholder="Hint" onkeydown="if(event.key==='Enter'){event.preventDefault();addHint();}">
-      </div>
-      <button type="button" class="wide-btn btn-blue" onclick="addHint(event)">Add Hint</button>
-      <ul id="hintList" class="dashboard-list"></ul>
-    </div>
-
-    <!-- 6. TV WATCHLIST -->
+    <!-- 4. TV WATCHLIST -->
     <div class="card">
       <h3>📺 TV Watchlist</h3>
       <div class="input-row">
@@ -235,14 +204,12 @@
 
 <script>
   const SCRATCH_KEY = 'louby_scratchpad_data';
-  const HINT_KEY = 'louby_hints_data';
   const SHOW_KEY = 'louby_watchlist_data';
 
   document.addEventListener('DOMContentLoaded', () => {
     fetchWeather();
     startCountdown();
     renderScratch();
-    renderHints();
     renderShows();
   });
 
@@ -311,40 +278,6 @@
     items.forEach((text, index) => {
       const li = document.createElement('li');
       li.innerHTML = `<span>${escapeHtml(text)}</span><button type="button" class="delete-item-btn" onclick="removeScratch(${index})">✕</button>`;
-      list.appendChild(li);
-    });
-  }
-
-  /* --- PASSWORD HINTS LOGIC --- */
-  function addHint(e) {
-    if (e) e.preventDefault();
-    const siteEl = document.getElementById('siteInput');
-    const hintEl = document.getElementById('hintInput');
-    const site = siteEl.value.trim();
-    const hint = hintEl.value.trim();
-    if (!site || !hint) return;
-    const items = JSON.parse(localStorage.getItem(HINT_KEY) || '[]');
-    items.push({ site, hint });
-    localStorage.setItem(HINT_KEY, JSON.stringify(items));
-    siteEl.value = '';
-    hintEl.value = '';
-    renderHints();
-  }
-
-  function removeHint(index) {
-    const items = JSON.parse(localStorage.getItem(HINT_KEY) || '[]');
-    items.splice(index, 1);
-    localStorage.setItem(HINT_KEY, JSON.stringify(items));
-    renderHints();
-  }
-
-  function renderHints() {
-    const list = document.getElementById('hintList');
-    const items = JSON.parse(localStorage.getItem(HINT_KEY) || '[]');
-    list.innerHTML = '';
-    items.forEach((item, index) => {
-      const li = document.createElement('li');
-      li.innerHTML = `<div><strong>${escapeHtml(item.site)}:</strong> <span>${escapeHtml(item.hint)}</span></div><button type="button" class="delete-item-btn" onclick="removeHint(${index})">✕</button>`;
       list.appendChild(li);
     });
   }
