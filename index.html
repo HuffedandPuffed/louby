@@ -290,7 +290,7 @@
   const SHOP_KEY = 'louby_shopping_data';
   const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzz7GSkDQDW2YcauGKJfiAon2TqXTd4gWCjmM5hh1scRxe2hVyZjLopXGRIquGzqpZ1/exec';
 
-  let isSavingToCloud = false;
+  let isSyncing = false;
 
   document.addEventListener('DOMContentLoaded', async () => {
     if ('serviceWorker' in navigator) {
@@ -302,60 +302,39 @@
     renderShows();
     renderShopItems();
 
-    // 1. Process any incoming shared link from Android
     await checkIncomingUrl();
-
-    // 2. Initial cloud fetch
     await fetchCloudShopItems();
 
-    // 3. Auto-sync every 15 seconds in the background
-    setInterval(fetchCloudShopItems, 15000);
+    // Auto-sync every 10 seconds across all devices
+    setInterval(fetchCloudShopItems, 10000);
   });
 
-  /* --- GOOGLE WORKSPACE CLOUD SYNC --- */
+  /* --- BULLETPROOF GET-BASED CLOUD SYNC --- */
   async function fetchCloudShopItems() {
-    if (isSavingToCloud) return; // Skip fetch while writing to prevent overwrite
+    if (isSyncing) return;
     try {
       const response = await fetch(GOOGLE_SCRIPT_URL);
       if (response.ok) {
         const cloudItems = await response.json();
         if (Array.isArray(cloudItems)) {
-          const localItems = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
-          
-          // Smart Merge: Keep cloud items + any unsaved local items
-          const merged = [...cloudItems];
-          localItems.forEach(localItem => {
-            if (localItem.link && !merged.some(c => c.link === localItem.link)) {
-              merged.push(localItem);
-            }
-          });
-
-          localStorage.setItem(SHOP_KEY, JSON.stringify(merged));
+          localStorage.setItem(SHOP_KEY, JSON.stringify(cloudItems));
           renderShopItems();
-
-          // If local had new items not yet in cloud, push them up
-          if (merged.length > cloudItems.length) {
-            await saveCloudShopItems(merged);
-          }
         }
       }
     } catch (err) {
-      console.log('Cloud fetch fallback to local storage', err);
+      console.log('Cloud fetch error', err);
     }
   }
 
   async function saveCloudShopItems(items) {
-    isSavingToCloud = true;
+    isSyncing = true;
     try {
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(items)
-      });
+      const saveUrl = GOOGLE_SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(items));
+      await fetch(saveUrl);
     } catch (err) {
       console.log('Cloud save error', err);
     } finally {
-      setTimeout(() => { isSavingToCloud = false; }, 2000);
+      setTimeout(() => { isSyncing = false; }, 1500);
     }
   }
 
