@@ -303,24 +303,28 @@
     renderShopItems();
 
     await checkIncomingUrl();
-    await fetchCloudShopItems();
+    await fetchCloudData();
 
-    // Auto-sync every 8 seconds across all devices
-    setInterval(fetchCloudShopItems, 8000);
+    // Auto-sync every 8 seconds across all devices for all cards
+    setInterval(fetchCloudData, 8000);
   });
 
-  /* --- CACHE-PROOF CLOUD SYNC --- */
-  async function fetchCloudShopItems() {
+  /* --- FULL DASHBOARD CLOUD SYNC --- */
+  async function fetchCloudData() {
     if (isSyncing) return;
     try {
-      // Added timestamp parameter (?t=...) to bypass browser cache
       const cacheBusterUrl = GOOGLE_SCRIPT_URL + '?t=' + Date.now();
       const response = await fetch(cacheBusterUrl);
       if (response.ok) {
-        const cloudItems = await response.json();
-        if (Array.isArray(cloudItems)) {
-          localStorage.setItem(SHOP_KEY, JSON.stringify(cloudItems));
+        const data = await response.json();
+        if (data) {
+          if (Array.isArray(data.shop)) localStorage.setItem(SHOP_KEY, JSON.stringify(data.shop));
+          if (Array.isArray(data.scratch)) localStorage.setItem(SCRATCH_KEY, JSON.stringify(data.scratch));
+          if (Array.isArray(data.shows)) localStorage.setItem(SHOW_KEY, JSON.stringify(data.shows));
+
           renderShopItems();
+          renderScratch();
+          renderShows();
         }
       }
     } catch (err) {
@@ -328,10 +332,16 @@
     }
   }
 
-  async function saveCloudShopItems(items) {
+  async function saveCloudData() {
     isSyncing = true;
     try {
-      const saveUrl = GOOGLE_SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(items)) + '&t=' + Date.now();
+      const payload = {
+        shop: JSON.parse(localStorage.getItem(SHOP_KEY) || '[]'),
+        scratch: JSON.parse(localStorage.getItem(SCRATCH_KEY) || '[]'),
+        shows: JSON.parse(localStorage.getItem(SHOW_KEY) || '[]')
+      };
+
+      const saveUrl = GOOGLE_SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(payload)) + '&t=' + Date.now();
       await fetch(saveUrl);
     } catch (err) {
       console.log('Cloud save error', err);
@@ -340,7 +350,7 @@
     }
   }
 
-  /* --- HANDLES LINKS FROM DESKTOP BOOKMARKLET & ANDROID SHARE MENU --- */
+  /* --- HANDLES INCOMING LINKS --- */
   async function checkIncomingUrl() {
     const params = new URLSearchParams(window.location.search);
     let link = params.get('addLink') || params.get('url') || params.get('text');
@@ -363,7 +373,7 @@
           items.push({ name: itemName, link: link });
           localStorage.setItem(SHOP_KEY, JSON.stringify(items));
           renderShopItems();
-          await saveCloudShopItems(items);
+          await saveCloudData();
         }
 
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -430,7 +440,7 @@
     itemEl.value = '';
     linkEl.value = '';
 
-    await saveCloudShopItems(items);
+    await saveCloudData();
   }
 
   async function removeShopItem(index) {
@@ -439,7 +449,7 @@
     localStorage.setItem(SHOP_KEY, JSON.stringify(items));
     renderShopItems();
 
-    await saveCloudShopItems(items);
+    await saveCloudData();
   }
 
   function copyShopLink(link, btn) {
@@ -493,7 +503,7 @@
   }
 
   /* --- DIGITAL SCRATCHPAD LOGIC --- */
-  function addScratch(e) {
+  async function addScratch(e) {
     if (e) e.preventDefault();
     const input = document.getElementById('scratchInput');
     const val = input.value.trim();
@@ -503,13 +513,17 @@
     localStorage.setItem(SCRATCH_KEY, JSON.stringify(items));
     input.value = '';
     renderScratch();
+
+    await saveCloudData();
   }
 
-  function removeScratch(index) {
+  async function removeScratch(index) {
     const items = JSON.parse(localStorage.getItem(SCRATCH_KEY) || '[]');
     items.splice(index, 1);
     localStorage.setItem(SCRATCH_KEY, JSON.stringify(items));
     renderScratch();
+
+    await saveCloudData();
   }
 
   function renderScratch() {
@@ -524,7 +538,7 @@
   }
 
   /* --- TV WATCHLIST LOGIC --- */
-  function addShow(e) {
+  async function addShow(e) {
     if (e) e.preventDefault();
     const input = document.getElementById('showInput');
     const netSelect = document.getElementById('networkSelect');
@@ -535,13 +549,17 @@
     localStorage.setItem(SHOW_KEY, JSON.stringify(items));
     input.value = '';
     renderShows();
+
+    await saveCloudData();
   }
 
-  function removeShow(index) {
+  async function removeShow(index) {
     const items = JSON.parse(localStorage.getItem(SHOW_KEY) || '[]');
     items.splice(index, 1);
     localStorage.setItem(SHOW_KEY, JSON.stringify(items));
     renderShows();
+
+    await saveCloudData();
   }
 
   function renderShows() {
