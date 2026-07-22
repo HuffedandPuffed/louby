@@ -288,7 +288,7 @@
   const SCRATCH_KEY = 'louby_scratchpad_data';
   const SHOW_KEY = 'louby_watchlist_data';
   const SHOP_KEY = 'louby_shopping_data';
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzz7GSkDQDW2YcauGKJfiAon2TqXTd4gWCjmM5hh1scRxe2hVyZjLopXGRIquGzqpZ1/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyBriQw4cK62pRTyCZkjcYuHZUDTTXC8QZHcHzMUt8aTfF4i3ZMS9eYDOgJWKoI7RTo/exec';
 
   let lastLocalChangeTime = 0;
   let isSaving = false;
@@ -306,13 +306,11 @@
     await checkIncomingUrl();
     await fetchCloudData();
 
-    // Background polling every 8 seconds
     setInterval(fetchCloudData, 8000);
   });
 
-  /* --- CLOUD FETCH WITH LOCAL CHANGE PROTECTION --- */
+  /* --- RELIABLE CLOUD FETCH --- */
   async function fetchCloudData() {
-    // Shield screen from being overwritten if a local item was added/removed in the last 8 seconds
     if (isSaving || (Date.now() - lastLocalChangeTime < 8000)) return;
 
     try {
@@ -335,6 +333,7 @@
     }
   }
 
+  /* --- CORS-FRIENDLY SAVE TO GOOGLE SHEET --- */
   async function saveCloudData() {
     lastLocalChangeTime = Date.now();
     isSaving = true;
@@ -347,9 +346,8 @@
 
       await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'data=' + encodeURIComponent(JSON.stringify(payload))
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload)
       });
     } catch (err) {
       console.log('Cloud save error', err);
@@ -358,7 +356,7 @@
     }
   }
 
-  /* --- ROBUST ANDROID SHARE HANDLER FOR TEMU & AMAZON --- */
+  /* --- ANDROID SHARE URL HANDLER --- */
   async function checkIncomingUrl() {
     const params = new URLSearchParams(window.location.search);
     const rawUrl = params.get('url') || '';
@@ -366,7 +364,6 @@
     const rawAddLink = params.get('addLink') || '';
     const rawTitle = params.get('title') || '';
 
-    // Search all parameters passed by Android apps
     const combinedText = `${rawUrl} ${rawText} ${rawAddLink}`.trim();
     if (!combinedText) return;
 
