@@ -290,7 +290,8 @@
   const SHOP_KEY = 'louby_shopping_data';
   const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzz7GSkDQDW2YcauGKJfiAon2TqXTd4gWCjmM5hh1scRxe2hVyZjLopXGRIquGzqpZ1/exec';
 
-  let isSyncing = false;
+  let lastLocalChangeTime = 0;
+  let isSaving = false;
 
   document.addEventListener('DOMContentLoaded', async () => {
     if ('serviceWorker' in navigator) {
@@ -305,47 +306,28 @@
     await checkIncomingUrl();
     await fetchCloudData();
 
-    // Sync across all devices every 6 seconds
-    setInterval(fetchCloudData, 6000);
+    // Background polling every 8 seconds
+    setInterval(fetchCloudData, 8000);
   });
 
-  /* --- FULL DASHBOARD SMART-MERGE SYNC --- */
+  /* --- CLOUD FETCH WITH LOCAL CHANGE PROTECTION --- */
   async function fetchCloudData() {
-    if (isSyncing) return;
+    // Shield screen from being overwritten if a local item was added/removed in the last 8 seconds
+    if (isSaving || (Date.now() - lastLocalChangeTime < 8000)) return;
+
     try {
       const cacheBusterUrl = GOOGLE_SCRIPT_URL + '?t=' + Date.now();
       const response = await fetch(cacheBusterUrl);
       if (response.ok) {
         const cloudData = await response.json();
         if (cloudData) {
-          let needsUpload = false;
-
-          // Merge Wishlist
-          const localShop = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
-          const mergedShop = mergeLists(cloudData.shop || [], localShop, (a, b) => a.name === b.name || (a.link && a.link === b.link));
-          if (mergedShop.length > (cloudData.shop || []).length) needsUpload = true;
-          localStorage.setItem(SHOP_KEY, JSON.stringify(mergedShop));
-
-          // Merge Scratchpad
-          const localScratch = JSON.parse(localStorage.getItem(SCRATCH_KEY) || '[]');
-          const mergedScratch = mergeLists(cloudData.scratch || [], localScratch, (a, b) => a === b);
-          if (mergedScratch.length > (cloudData.scratch || []).length) needsUpload = true;
-          localStorage.setItem(SCRATCH_KEY, JSON.stringify(mergedScratch));
-
-          // Merge Watchlist
-          const localShows = JSON.parse(localStorage.getItem(SHOW_KEY) || '[]');
-          const mergedShows = mergeLists(cloudData.shows || [], localShows, (a, b) => a.name === b.name);
-          if (mergedShows.length > (cloudData.shows || []).length) needsUpload = true;
-          localStorage.setItem(SHOW_KEY, JSON.stringify(mergedShows));
+          if (Array.isArray(cloudData.shop)) localStorage.setItem(SHOP_KEY, JSON.stringify(cloudData.shop));
+          if (Array.isArray(cloudData.scratch)) localStorage.setItem(SCRATCH_KEY, JSON.stringify(cloudData.scratch));
+          if (Array.isArray(cloudData.shows)) localStorage.setItem(SHOW_KEY, JSON.stringify(cloudData.shows));
 
           renderShopItems();
           renderScratch();
           renderShows();
-
-          // If device had local items not in cloud (like Watchlist), push merged version to Cloud
-          if (needsUpload) {
-            await saveCloudData();
-          }
         }
       }
     } catch (err) {
@@ -353,18 +335,9 @@
     }
   }
 
-  function mergeLists(cloudList, localList, compareFn) {
-    const result = [...cloudList];
-    localList.forEach(localItem => {
-      if (!result.some(cloudItem => compareFn(cloudItem, localItem))) {
-        result.push(localItem);
-      }
-    });
-    return result;
-  }
-
   async function saveCloudData() {
-    isSyncing = true;
+    lastLocalChangeTime = Date.now();
+    isSaving = true;
     try {
       const payload = {
         shop: JSON.parse(localStorage.getItem(SHOP_KEY) || '[]'),
@@ -372,47 +345,62 @@
         shows: JSON.parse(localStorage.getItem(SHOW_KEY) || '[]')
       };
 
-      // POST method handles unlimited payload size securely
       await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'data=' + encodeURIComponent(JSON.stringify(payload))
       });
     } catch (err) {
       console.log('Cloud save error', err);
     } finally {
-      setTimeout(() => { isSyncing = false; }, 1500);
+      setTimeout(() => { isSaving = false; }, 3000);
     }
   }
 
-  /* --- HANDLES INCOMING LINKS --- */
+  /* --- ROBUST ANDROID SHARE HANDLER FOR TEMU & AMAZON --- */
   async function checkIncomingUrl() {
     const params = new URLSearchParams(window.location.search);
-    let link = params.get('addLink') || params.get('url') || params.get('text');
-    let title = params.get('title');
+    const rawUrl = params.get('url') || '';
+    const rawText = params.get('text') || '';
+    const rawAddLink = params.get('addLink') || '';
+    const rawTitle = params.get('title') || '';
 
-    if (link) {
-      const urlMatch = link.match(/(https?:\/\/[^\s]+)/g);
-      if (urlMatch) {
-        link = urlMatch[0];
+    // Search all parameters passed by Android apps
+    const combinedText = `${rawUrl} ${rawText} ${rawAddLink}`.trim();
+    if (!combinedText) return;
+
+    const urlMatch = combinedText.match(/(https?:\/\/[^\s]+)/g);
+    if (urlMatch && urlMatch[0]) {
+      let link = urlMatch[0].replace(/[;,\)\.]*$/, '');
+
+      let itemName = rawTitle.trim();
+      if (!itemName || itemName === 'Saved Item') {
+        let leftoverText = rawText.replace(link, '').trim();
+        itemName = leftoverText || 'Saved Item';
       }
 
-      if (link.startsWith('http')) {
-        let itemName = title || 'Saved Item';
-        itemName = itemName.replace(/ \| Temu/gi, '').replace(/: Amazon.co.uk.*/gi, '').replace(/: Amazon.com.*/gi, '').trim();
+      itemName = itemName.replace(/ \| Temu/gi, '')
+                         .replace(/: Amazon.co.uk.*/gi, '')
+                         .replace(/: Amazon.com.*/gi, '')
+                         .replace(/^Look what I found on Temu!/gi, '')
+                         .trim();
 
-        const items = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
+      if (!itemName) itemName = 'Saved Item';
+
+      const items = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
+      const exists = items.some(i => i.link === link);
+      
+      if (!exists) {
+        items.push({ name: itemName, link: link });
+        localStorage.setItem(SHOP_KEY, JSON.stringify(items));
+        renderShopItems();
         
-        const exists = items.some(i => i.link === link);
-        if (!exists) {
-          items.push({ name: itemName, link: link });
-          localStorage.setItem(SHOP_KEY, JSON.stringify(items));
-          renderShopItems();
-          await saveCloudData();
-        }
-
-        window.history.replaceState({}, document.title, window.location.pathname);
+        lastLocalChangeTime = Date.now();
+        await saveCloudData();
       }
+
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
   }
 
