@@ -61,6 +61,21 @@
       letter-spacing: 0.75px;
     }
 
+    /* COUNTDOWN STYLES */
+    .countdown-purple {
+      color: #a855f7; /* Light Purple */
+      font-size: 34px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .weekend-gold {
+      color: #eab308; /* Gold */
+      font-size: 30px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
     .temp-big { font-size: 42px; font-weight: 700; color: #0f172a; line-height: 1; }
     .condition-text { font-size: 16px; color: #64748b; margin-top: 6px; }
 
@@ -154,26 +169,26 @@
 
   <div class="dashboard-grid">
     
-    <!-- GMAIL INBOX BUTTON -->
+    <!-- 1. WEEKEND COUNTDOWN (PLACED FIRST) -->
+    <div class="card">
+      <h3>⏳ Weekend Countdown</h3>
+      <div id="countdown-display" class="countdown-purple">--d --h --m --s</div>
+      <p id="countdown-subtext" class="condition-text">Until Friday 5:00 PM! 🙌</p>
+    </div>
+
+    <!-- 2. GMAIL INBOX BUTTON -->
     <div class="card">
       <h3>✉️ Quick Inbox</h3>
       <a href="https://mail.google.com" target="_blank" class="inbox-btn">Open Gmail Inbox</a>
     </div>
 
-    <!-- WEEKEND COUNTDOWN -->
-    <div class="card">
-      <h3>⏳ Countdown</h3>
-      <div id="countdown-display" class="temp-big">--</div>
-      <p id="countdown-subtext" class="condition-text">Until home time!</p>
-    </div>
-
-    <!-- KAURI WEATHER -->
+    <!-- 3. KAURI WEATHER -->
     <div class="card">
       <h3>🌤️ Kauri Weather</h3>
       <div id="weather-display" class="condition-text">Loading local weather...</div>
     </div>
 
-    <!-- DIGITAL SCRATCHPAD -->
+    <!-- 4. DIGITAL SCRATCHPAD -->
     <div class="card" style="background: #fffdf9; border: 1px solid #fde68a;">
       <h3 style="color: #b45309;">📝 Digital Scratchpad</h3>
       <div class="input-row">
@@ -183,7 +198,7 @@
       <ul id="scratchList" class="dashboard-list"></ul>
     </div>
 
-    <!-- PASSWORD HINTS -->
+    <!-- 5. PASSWORD HINTS -->
     <div class="card">
       <h3>🔑 Password Hints</h3>
       <div class="input-row">
@@ -194,7 +209,7 @@
       <ul id="hintList" class="dashboard-list"></ul>
     </div>
 
-    <!-- TV WATCHLIST -->
+    <!-- 6. TV WATCHLIST -->
     <div class="card">
       <h3>📺 TV Watchlist</h3>
       <div class="input-row">
@@ -227,6 +242,44 @@
     renderHints();
     renderShows();
   });
+
+  /* --- WEEKEND COUNTDOWN LOGIC (Friday @ 17:00) --- */
+  function startCountdown() { 
+    updateClock(); 
+    setInterval(updateClock, 1000); 
+  }
+
+  function updateClock() {
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 = Sun, 1 = Mon, ..., 5 = Fri, 6 = Sat
+    const display = document.getElementById('countdown-display');
+    const subtext = document.getElementById('countdown-subtext');
+
+    // Weekend Mode: Friday from 17:00 onwards, Saturday, or Sunday
+    if ((currentDay === 5 && now.getHours() >= 17) || currentDay === 6 || currentDay === 0) {
+      display.innerText = "🏡 It's the Weekend!";
+      display.className = "weekend-gold";
+      subtext.innerText = "Enjoy your time off, Louby!";
+      return;
+    }
+
+    // Workweek Mode: Calculate remaining time until Friday 17:00
+    let targetFriday = new Date(now);
+    targetFriday.setHours(17, 0, 0, 0);
+
+    let daysToAdd = (5 - currentDay + 7) % 7;
+    targetFriday.setDate(now.getDate() + daysToAdd);
+
+    const diff = targetFriday - now;
+    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+    display.innerText = `${d}d ${h}h ${m}m ${s}s`;
+    display.className = "countdown-purple";
+    subtext.innerText = "Until Friday 5:00 PM! 🙌";
+  }
 
   /* --- DIGITAL SCRATCHPAD LOGIC --- */
   function addScratch(e) {
@@ -348,31 +401,6 @@
     } catch (e) { 
       document.getElementById('weather-display').innerHTML = "Weather currently offline"; 
     }
-  }
-
-  /* --- COUNTDOWN LOGIC --- */
-  function startCountdown() { updateClock(); setInterval(updateClock, 1000); }
-  function updateClock() {
-    const now = new Date();
-    const currentDay = now.getDay();
-    if ((currentDay === 5 && now.getHours() >= 17) || currentDay === 6 || currentDay === 0) {
-      document.getElementById('countdown-display').innerText = "🏡 It's the Weekend!";
-      document.getElementById('countdown-display').style.fontSize = "26px";
-      document.getElementById('countdown-subtext').innerText = "Enjoy your time off, Louby!";
-      return;
-    }
-    let targetFriday = new Date();
-    targetFriday.setHours(17, 0, 0, 0);
-    let daysToAdd = (5 - currentDay + 7) % 7;
-    targetFriday.setDate(now.getDate() + daysToAdd);
-    const diff = targetFriday - now;
-    const d = Math.floor(diff / 86400000);
-    const h = Math.floor((diff % 86400000) / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    const s = Math.floor((diff % 60000) / 1000);
-    document.getElementById('countdown-display').innerText = `${d > 0 ? d + 'd ' : ''}${h}h ${m}m ${s}s`;
-    document.getElementById('countdown-display').style.fontSize = "30px";
-    document.getElementById('countdown-subtext').innerText = "Until the weekend starts! 🙌";
   }
 
   function escapeHtml(str) {
