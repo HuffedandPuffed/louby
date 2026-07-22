@@ -305,15 +305,17 @@
     await checkIncomingUrl();
     await fetchCloudShopItems();
 
-    // Auto-sync every 10 seconds across all devices
-    setInterval(fetchCloudShopItems, 10000);
+    // Auto-sync every 8 seconds across all devices
+    setInterval(fetchCloudShopItems, 8000);
   });
 
-  /* --- BULLETPROOF GET-BASED CLOUD SYNC --- */
+  /* --- CACHE-PROOF CLOUD SYNC --- */
   async function fetchCloudShopItems() {
     if (isSyncing) return;
     try {
-      const response = await fetch(GOOGLE_SCRIPT_URL);
+      // Added timestamp parameter (?t=...) to bypass browser cache
+      const cacheBusterUrl = GOOGLE_SCRIPT_URL + '?t=' + Date.now();
+      const response = await fetch(cacheBusterUrl);
       if (response.ok) {
         const cloudItems = await response.json();
         if (Array.isArray(cloudItems)) {
@@ -329,7 +331,7 @@
   async function saveCloudShopItems(items) {
     isSyncing = true;
     try {
-      const saveUrl = GOOGLE_SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(items));
+      const saveUrl = GOOGLE_SCRIPT_URL + '?data=' + encodeURIComponent(JSON.stringify(items)) + '&t=' + Date.now();
       await fetch(saveUrl);
     } catch (err) {
       console.log('Cloud save error', err);
