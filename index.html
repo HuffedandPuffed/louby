@@ -82,7 +82,7 @@
 
     .quicklinks-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
       gap: 10px;
     }
     .quicklink-card {
@@ -226,10 +226,6 @@
           <span class="quicklink-icon">▶️</span>
           <span>YouTube</span>
         </a>
-        <a href="https://mail.google.com" target="_blank" class="quicklink-card">
-          <span class="quicklink-icon">✉️</span>
-          <span>Gmail</span>
-        </a>
         <a href="https://www.stuff.co.nz" target="_blank" class="quicklink-card">
           <span class="quicklink-icon">📰</span>
           <span>NZ News</span>
@@ -309,14 +305,12 @@
 
     if (link) {
       let itemName = title || 'Saved Item';
-      // Clean up common webpage title suffixes
       itemName = itemName.replace(/ \| Temu/gi, '').replace(/: Amazon.com.*/gi, '').trim();
 
       const items = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
       items.push({ name: itemName, link: link });
       localStorage.setItem(SHOP_KEY, JSON.stringify(items));
 
-      // Clean the URL bar so it doesn't re-add on page refresh
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }
