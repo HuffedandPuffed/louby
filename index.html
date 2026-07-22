@@ -288,15 +288,48 @@
   const SCRATCH_KEY = 'louby_scratchpad_data';
   const SHOW_KEY = 'louby_watchlist_data';
   const SHOP_KEY = 'louby_shopping_data';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzz7GSkDQDW2YcauGKJfiAon2TqXTd4gWCjmM5hh1scRxe2hVyZjLopXGRIquGzqpZ1/exec';
 
   document.addEventListener('DOMContentLoaded', () => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
     checkIncomingUrl();
     fetchWeather();
     startCountdown();
     renderScratch();
     renderShows();
     renderShopItems();
+    fetchCloudShopItems();
   });
+
+  /* --- GOOGLE WORKSPACE CLOUD SYNC --- */
+  async function fetchCloudShopItems() {
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL);
+      if (response.ok) {
+        const cloudItems = await response.json();
+        if (Array.isArray(cloudItems)) {
+          localStorage.setItem(SHOP_KEY, JSON.stringify(cloudItems));
+          renderShopItems();
+        }
+      }
+    } catch (err) {
+      console.log('Cloud fetch error, using local data', err);
+    }
+  }
+
+  function saveCloudShopItems(items) {
+    try {
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(items)
+      });
+    } catch (err) {
+      console.log('Cloud save error', err);
+    }
+  }
 
   /* --- HANDLES LINKS FROM DESKTOP BOOKMARKLET & ANDROID SHARE MENU --- */
   function checkIncomingUrl() {
@@ -320,6 +353,7 @@
         if (!exists) {
           items.push({ name: itemName, link: link });
           localStorage.setItem(SHOP_KEY, JSON.stringify(items));
+          saveCloudShopItems(items);
         }
 
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -381,6 +415,7 @@
     const items = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
     items.push({ name: itemName, link: link });
     localStorage.setItem(SHOP_KEY, JSON.stringify(items));
+    saveCloudShopItems(items);
 
     itemEl.value = '';
     linkEl.value = '';
@@ -391,6 +426,7 @@
     const items = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
     items.splice(index, 1);
     localStorage.setItem(SHOP_KEY, JSON.stringify(items));
+    saveCloudShopItems(items);
     renderShopItems();
   }
 
@@ -527,10 +563,6 @@
   function escapeHtml(str) {
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
-
-  if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js');
-}
 </script>
 
 </body>
