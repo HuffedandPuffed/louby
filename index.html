@@ -28,6 +28,7 @@
       padding: 16px 24px;
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      border: 2px solid #d8b4fe; /* Matching light purple border */
     }
 
     .welcome-banner h1 {
@@ -44,12 +45,14 @@
       align-items: start;
     }
 
+    /* ALL SECTIONS HAVE THE SAME LIGHT PURPLE BORDER */
     .card {
       background: #ffffff;
       padding: 24px;
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       box-sizing: border-box;
+      border: 2px solid #d8b4fe; /* Uniform Light Purple Border */
     }
 
     .card h3 {
@@ -62,15 +65,15 @@
     }
 
     /* COUNTDOWN STYLES */
-    .countdown-purple {
-      color: #a855f7; /* Light Purple */
+    .countdown-black {
+      color: #000000 !important; /* Solid Black Digits */
       font-size: 34px;
       font-weight: 700;
       line-height: 1.1;
     }
 
     .weekend-gold {
-      color: #eab308; /* Gold */
+      color: #eab308 !important; /* Gold for Weekend Mode */
       font-size: 30px;
       font-weight: 700;
       line-height: 1.1;
@@ -169,10 +172,10 @@
 
   <div class="dashboard-grid">
     
-    <!-- 1. WEEKEND COUNTDOWN (PLACED FIRST) -->
-    <div class="card">
+    <!-- 1. WEEKEND COUNTDOWN (LIGHT PURPLE BACKGROUND) -->
+    <div class="card" style="background-color: #f3e8ff;">
       <h3>⏳ Weekend Countdown</h3>
-      <div id="countdown-display" class="countdown-purple">--d --h --m --s</div>
+      <div id="countdown-display" class="countdown-black">--d --h --m --s</div>
       <p id="countdown-subtext" class="condition-text">Until Friday 5:00 PM! 🙌</p>
     </div>
 
@@ -189,7 +192,7 @@
     </div>
 
     <!-- 4. DIGITAL SCRATCHPAD -->
-    <div class="card" style="background: #fffdf9; border: 1px solid #fde68a;">
+    <div class="card">
       <h3 style="color: #b45309;">📝 Digital Scratchpad</h3>
       <div class="input-row">
         <input type="text" id="scratchInput" placeholder="Jot down a quick note or reminder..." onkeydown="if(event.key==='Enter'){event.preventDefault();addScratch();}">
@@ -251,11 +254,11 @@
 
   function updateClock() {
     const now = new Date();
-    const currentDay = now.getDay(); // 0 = Sun, 1 = Mon, ..., 5 = Fri, 6 = Sat
+    const currentDay = now.getDay();
     const display = document.getElementById('countdown-display');
     const subtext = document.getElementById('countdown-subtext');
 
-    // Weekend Mode: Friday from 17:00 onwards, Saturday, or Sunday
+    // Weekend Mode
     if ((currentDay === 5 && now.getHours() >= 17) || currentDay === 6 || currentDay === 0) {
       display.innerText = "🏡 It's the Weekend!";
       display.className = "weekend-gold";
@@ -263,7 +266,7 @@
       return;
     }
 
-    // Workweek Mode: Calculate remaining time until Friday 17:00
+    // Workweek Mode
     let targetFriday = new Date(now);
     targetFriday.setHours(17, 0, 0, 0);
 
@@ -277,7 +280,7 @@
     const s = Math.floor((diff % (1000 * 60)) / 1000);
 
     display.innerText = `${d}d ${h}h ${m}m ${s}s`;
-    display.className = "countdown-purple";
+    display.className = "countdown-black";
     subtext.innerText = "Until Friday 5:00 PM! 🙌";
   }
 
