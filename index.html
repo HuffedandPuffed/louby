@@ -242,7 +242,7 @@
 
     <!-- 4. BUY LATER / WISHLIST -->
     <div class="card">
-      <h3 style="color: #0d9488;">🛍️ Buy Later / Wishlist</h3>
+      <h3 style="color: #0d9488;" id="shopCardHeader">🛍️ Buy Later / Wishlist</h3>
       <div class="input-row">
         <input type="text" id="shopItemInput" placeholder="Item description (e.g. Red Slippers)" onkeydown="if(event.key==='Enter'){event.preventDefault();addShopItem();}">
       </div>
@@ -290,49 +290,77 @@
   const SHOP_KEY = 'louby_shopping_data';
   const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzz7GSkDQDW2YcauGKJfiAon2TqXTd4gWCjmM5hh1scRxe2hVyZjLopXGRIquGzqpZ1/exec';
 
-  document.addEventListener('DOMContentLoaded', () => {
+  let isSavingToCloud = false;
+
+  document.addEventListener('DOMContentLoaded', async () => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js');
     }
-    checkIncomingUrl();
     fetchWeather();
     startCountdown();
     renderScratch();
     renderShows();
     renderShopItems();
-    fetchCloudShopItems();
+
+    // 1. Process any incoming shared link from Android
+    await checkIncomingUrl();
+
+    // 2. Initial cloud fetch
+    await fetchCloudShopItems();
+
+    // 3. Auto-sync every 15 seconds in the background
+    setInterval(fetchCloudShopItems, 15000);
   });
 
   /* --- GOOGLE WORKSPACE CLOUD SYNC --- */
   async function fetchCloudShopItems() {
+    if (isSavingToCloud) return; // Skip fetch while writing to prevent overwrite
     try {
       const response = await fetch(GOOGLE_SCRIPT_URL);
       if (response.ok) {
         const cloudItems = await response.json();
         if (Array.isArray(cloudItems)) {
-          localStorage.setItem(SHOP_KEY, JSON.stringify(cloudItems));
+          const localItems = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
+          
+          // Smart Merge: Keep cloud items + any unsaved local items
+          const merged = [...cloudItems];
+          localItems.forEach(localItem => {
+            if (localItem.link && !merged.some(c => c.link === localItem.link)) {
+              merged.push(localItem);
+            }
+          });
+
+          localStorage.setItem(SHOP_KEY, JSON.stringify(merged));
           renderShopItems();
+
+          // If local had new items not yet in cloud, push them up
+          if (merged.length > cloudItems.length) {
+            await saveCloudShopItems(merged);
+          }
         }
       }
     } catch (err) {
-      console.log('Cloud fetch error, using local data', err);
+      console.log('Cloud fetch fallback to local storage', err);
     }
   }
 
-  function saveCloudShopItems(items) {
+  async function saveCloudShopItems(items) {
+    isSavingToCloud = true;
     try {
-      fetch(GOOGLE_SCRIPT_URL, {
+      await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(items)
       });
     } catch (err) {
       console.log('Cloud save error', err);
+    } finally {
+      setTimeout(() => { isSavingToCloud = false; }, 2000);
     }
   }
 
   /* --- HANDLES LINKS FROM DESKTOP BOOKMARKLET & ANDROID SHARE MENU --- */
-  function checkIncomingUrl() {
+  async function checkIncomingUrl() {
     const params = new URLSearchParams(window.location.search);
     let link = params.get('addLink') || params.get('url') || params.get('text');
     let title = params.get('title');
@@ -353,7 +381,8 @@
         if (!exists) {
           items.push({ name: itemName, link: link });
           localStorage.setItem(SHOP_KEY, JSON.stringify(items));
-          saveCloudShopItems(items);
+          renderShopItems();
+          await saveCloudShopItems(items);
         }
 
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -398,7 +427,7 @@
   }
 
   /* --- BUY LATER / WISHLIST LOGIC --- */
-  function addShopItem(e) {
+  async function addShopItem(e) {
     if (e) e.preventDefault();
     const itemEl = document.getElementById('shopItemInput');
     const linkEl = document.getElementById('shopLinkInput');
@@ -415,19 +444,21 @@
     const items = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
     items.push({ name: itemName, link: link });
     localStorage.setItem(SHOP_KEY, JSON.stringify(items));
-    saveCloudShopItems(items);
+    renderShopItems();
 
     itemEl.value = '';
     linkEl.value = '';
-    renderShopItems();
+
+    await saveCloudShopItems(items);
   }
 
-  function removeShopItem(index) {
+  async function removeShopItem(index) {
     const items = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
     items.splice(index, 1);
     localStorage.setItem(SHOP_KEY, JSON.stringify(items));
-    saveCloudShopItems(items);
     renderShopItems();
+
+    await saveCloudShopItems(items);
   }
 
   function copyShopLink(link, btn) {
@@ -448,6 +479,14 @@
     const list = document.getElementById('shopList');
     const items = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
     list.innerHTML = '';
+
+    const countHeader = document.getElementById('shopCardHeader');
+    if (countHeader) {
+      countHeader.innerText = items.length > 0 
+        ? `🛍️ Buy Later / Wishlist (${items.length})` 
+        : `🛍️ Buy Later / Wishlist`;
+    }
+
     items.forEach((item, index) => {
       const li = document.createElement('li');
       
