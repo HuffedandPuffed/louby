@@ -186,7 +186,7 @@
     <div class="card">
       <h3>✉️ Quick Inbox</h3>
       <!-- CHANGE 'your-email@gmail.com' TO HER ACTUAL GMAIL ADDRESS BELOW -->
-    <a href="googlegmail://" class="inbox-btn">Open Gmail App</a>
+    <a href="https://mail.google.com" onclick="openGmailApp(event)" class="inbox-btn">Open Gmail App</a>
     </div>
 
     <!-- WEEKEND COUNTDOWN -->
@@ -222,7 +222,7 @@
 
     <!-- TV WATCHLIST -->
     <div class="card">
-      <h3>📺 TV Watchlist</h3>
+      <h3>📺 TV Watchlist</h3>@@
       <div class="input-row">
         <input type="text" id="showInput" placeholder="Show name">
         <select id="networkSelect">
@@ -367,6 +367,23 @@
     document.getElementById('showLoadStatus').style.display = 'none';
   }
 
+function openGmailApp(e) {
+  e.preventDefault();
+  const isAndroid = /android/i.test(navigator.userAgent);
+  const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+  if (isAndroid) {
+    // Force Android to launch the Gmail app home/inbox screen
+    window.location.href = "intent://#Intent;package=com.google.android.gm;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;end";
+  } else if (isiOS) {
+    // iOS Gmail app scheme
+    window.location.href = "googlegmail://";
+  } else {
+    // Web browser fallback for PC / Desktop
+    window.open("https://mail.google.com", "_blank");
+  }
+}
+  
   function renderShows(shows) {
     const list = document.getElementById('showList');
     list.innerHTML = '';
