@@ -63,7 +63,6 @@
       letter-spacing: 0.75px;
     }
 
-    /* COUNTDOWN STYLES */
     .countdown-black {
       color: #000000 !important;
       font-size: 34px;
@@ -81,7 +80,6 @@
     .temp-big { font-size: 42px; font-weight: 700; color: #0f172a; line-height: 1; }
     .condition-text { font-size: 16px; color: #64748b; margin-top: 6px; }
 
-    /* QUICKLINKS STYLES */
     .quicklinks-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -112,7 +110,6 @@
       margin-bottom: 4px;
     }
 
-    /* INPUT & BUTTON STYLES */
     .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
     .input-row input, .input-row select {
       padding: 12px;
@@ -296,6 +293,7 @@
   const SHOP_KEY = 'louby_shopping_data';
 
   document.addEventListener('DOMContentLoaded', () => {
+    checkIncomingUrl();
     fetchWeather();
     startCountdown();
     renderScratch();
@@ -303,7 +301,27 @@
     renderShopItems();
   });
 
-  /* --- WEEKEND COUNTDOWN LOGIC (Friday @ 17:00) --- */
+  /* --- CHECK FOR LINKS SENT FROM TEMU/AMAZON BOOKMARKLET --- */
+  function checkIncomingUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const link = params.get('addLink');
+    const title = params.get('title');
+
+    if (link) {
+      let itemName = title || 'Saved Item';
+      // Clean up common webpage title suffixes
+      itemName = itemName.replace(/ \| Temu/gi, '').replace(/: Amazon.com.*/gi, '').trim();
+
+      const items = JSON.parse(localStorage.getItem(SHOP_KEY) || '[]');
+      items.push({ name: itemName, link: link });
+      localStorage.setItem(SHOP_KEY, JSON.stringify(items));
+
+      // Clean the URL bar so it doesn't re-add on page refresh
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }
+
+  /* --- WEEKEND COUNTDOWN LOGIC --- */
   function startCountdown() { 
     updateClock(); 
     setInterval(updateClock, 1000); 
