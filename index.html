@@ -4,7 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Louby's Website</title>
+  
+  <!-- FAVICON SETUP -->
+  <link rel="icon" type="image/webp" href="louby2.webp">
+  <link rel="apple-touch-icon" href="louby2.webp">
   <link rel="manifest" href="manifest.json">
+
   <style>
     body {
       background-color: #f4f6f9;
@@ -23,7 +28,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 20px;
+      gap: 12px;
       margin-bottom: 24px;
       background: white;
       padding: 16px 24px;
@@ -36,6 +41,13 @@
       margin: 0;
       color: #0f172a;
       font-size: 28px;
+    }
+
+    .banner-img {
+      height: 42px;
+      width: auto;
+      border-radius: 8px;
+      object-fit: contain;
     }
 
     .dashboard-grid {
@@ -193,9 +205,10 @@
 
 <div class="container">
   
-  <!-- WELCOME HEADER -->
+  <!-- WELCOME HEADER WITH LOGO -->
   <div class="welcome-banner">
     <h1>Welcome, Louby!</h1>
+    <img src="louby2.webp" alt="Louby Icon" class="banner-img">
   </div>
 
   <div class="dashboard-grid">
