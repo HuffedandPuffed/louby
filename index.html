@@ -93,6 +93,13 @@
     .temp-big { font-size: 42px; font-weight: 700; color: #0f172a; line-height: 1; }
     .condition-text { font-size: 16px; color: #64748b; margin-top: 6px; }
 
+    .quote-text {
+      font-size: 16px;
+      font-style: italic;
+      color: #334155;
+      line-height: 1.4;
+    }
+
     .quicklinks-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
@@ -220,7 +227,7 @@
       <p id="countdown-subtext" class="condition-text">Until Friday 5:00 PM! 🙌</p>
     </div>
 
-    <!-- 2. QUICKLAUNCHPAD -->
+    <!-- 2. QUICK LAUNCHPAD -->
     <div class="card">
       <h3>🚀 Quick Launchpad</h3>
       <div class="quicklinks-grid">
@@ -253,7 +260,20 @@
       <div id="weather-display" class="condition-text">Loading local weather...</div>
     </div>
 
-    <!-- 4. BUY LATER / WISHLIST -->
+    <!-- 4. NEXT NZ PUBLIC HOLIDAY -->
+    <div class="card" style="background-color: #f0fdf4;">
+      <h3 style="color: #15803d;">🇳🇿 Next NZ Public Holiday</h3>
+      <div id="holiday-display" class="countdown-black">-- Days</div>
+      <p id="holiday-subtext" class="condition-text">Calculating next holiday...</p>
+    </div>
+
+    <!-- 5. DARK HUMOUR QUOTE OF THE DAY -->
+    <div class="card" style="background-color: #fff7ed;">
+      <h3 style="color: #c2410c;">🖤 Dark Humour of the Day</h3>
+      <p id="dark-joke-display" class="quote-text">Loading daily quote...</p>
+    </div>
+
+    <!-- 6. BUY LATER / WISHLIST -->
     <div class="card">
       <h3 style="color: #0d9488;" id="shopCardHeader">🛍️ Buy Later / Wishlist</h3>
       <div class="input-row">
@@ -266,7 +286,18 @@
       <ul id="shopList" class="dashboard-list"></ul>
     </div>
 
-    <!-- 5. DIGITAL SCRATCHPAD -->
+    <!-- 7. QUICK GROCERY CHECKLIST -->
+    <div class="card">
+      <h3 style="color: #15803d;">🛒 Quick Grocery Checklist</h3>
+      <div class="input-row">
+        <input type="text" id="groceryInput" placeholder="Add extra item..." onkeydown="if(event.key==='Enter'){event.preventDefault();addGroceryItem();}">
+      </div>
+      <button type="button" class="wide-btn btn-blue" onclick="addGroceryItem(event)">Add Item</button>
+      <ul id="groceryList" class="dashboard-list"></ul>
+      <button type="button" class="action-sm-btn" style="width:100%; margin-top:12px; padding:8px;" onclick="resetGroceries()">🔄 Reset All Checkboxes</button>
+    </div>
+
+    <!-- 8. DIGITAL SCRATCHPAD -->
     <div class="card">
       <h3 style="color: #b45309;">📝 Digital Scratchpad</h3>
       <div class="input-row">
@@ -276,7 +307,7 @@
       <ul id="scratchList" class="dashboard-list"></ul>
     </div>
 
-    <!-- 6. TV WATCHLIST -->
+    <!-- 9. TV WATCHLIST -->
     <div class="card">
       <h3>📺 TV Watchlist</h3>
       <div class="input-row">
@@ -301,7 +332,52 @@
   const SCRATCH_KEY = 'louby_scratchpad_data';
   const SHOW_KEY = 'louby_watchlist_data';
   const SHOP_KEY = 'louby_shopping_data';
+  const GROCERY_KEY = 'louby_grocery_data';
   const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyBriQw4cK62pRTyCZkjcYuHZUDTTXC8QZHcHzMUt8aTfF4i3ZMS9eYDOgJWKoI7RTo/exec';
+
+  const DEFAULT_GROCERIES = [
+    { name: 'Milk 🥛', checked: false },
+    { name: 'Bread 🍞', checked: false },
+    { name: 'Eggs 🥚', checked: false },
+    { name: 'Butter 🧈', checked: false },
+    { name: 'Coffee ☕', checked: false },
+    { name: 'Fruit & Veges 🍏', checked: false }
+  ];
+
+  const NZ_HOLIDAYS = [
+    { name: "Labour Day", date: "2026-10-26" },
+    { name: "Christmas Day", date: "2026-12-25" },
+    { name: "Boxing Day (Observed)", date: "2026-12-28" },
+    { name: "New Year's Day", date: "2027-01-01" },
+    { name: "Day after New Year's Day", date: "2027-01-04" },
+    { name: "Auckland / Northland Anniversary", date: "2027-02-01" },
+    { name: "Waitangi Day (Observed)", date: "2027-02-08" },
+    { name: "Good Friday", date: "2027-03-26" },
+    { name: "Easter Monday", date: "2027-03-29" },
+    { name: "ANZAC Day (Observed)", date: "2027-04-26" },
+    { name: "King's Birthday", date: "2027-06-07" },
+    { name: "Matariki", date: "2027-06-25" },
+    { name: "Labour Day", date: "2027-10-25" },
+    { name: "Christmas Day", date: "2027-12-27" },
+    { name: "Boxing Day", date: "2027-12-28" }
+  ];
+
+  const DARK_JOKES = [
+    "You don't need a parachute to go skydiving. You only need a parachute to go skydiving twice.",
+    "Give a man a match and he'll be warm for a few hours. Set a man on fire and he'll be warm for the rest of his life.",
+    "My doctor told me I broke my arm in two places. He advised me to stop going to those places.",
+    "I want to die peacefully in my sleep like my grandfather. Not screaming in terror like the passengers in his car.",
+    "I asked my doctor if I'd be able to play the piano after surgery. He said yes. Great, because I never could before!",
+    "My boss told me to have a good day... so I went home.",
+    "Parallel lines have so much in common. It's a shame they'll never meet.",
+    "I used to think I was indecisive, but now I'm not so sure.",
+    "Artificial intelligence is no match for natural stupidity.",
+    "My wife told me to stop impersonating a flamingo. I had to put my foot down.",
+    "I built a model of Mount Everest and my cat walked on it. It was a catastrophe.",
+    "Always borrow money from a pessimist. They won't expect it back.",
+    "The guy who invented predictive text has died. His funereal is on Today.",
+    "I'm on a seafood diet. I see food and I eat it."
+  ];
 
   let lastLocalChangeTime = 0;
   let isSaving = false;
@@ -312,15 +388,129 @@
     }
     fetchWeather();
     startCountdown();
+    updateNextHoliday();
+    renderDarkQuote();
     renderScratch();
     renderShows();
     renderShopItems();
+    renderGroceries();
 
     await checkIncomingUrl();
     await fetchCloudData();
 
     setInterval(fetchCloudData, 8000);
   });
+
+  /* --- NEXT NZ PUBLIC HOLIDAY LOGIC --- */
+  function updateNextHoliday() {
+    const now = new Date();
+    now.setHours(0,0,0,0);
+    
+    let next = null;
+    for (let h of NZ_HOLIDAYS) {
+      let hDate = new Date(h.date + "T00:00:00");
+      if (hDate >= now) {
+        next = { name: h.name, date: hDate };
+        break;
+      }
+    }
+
+    const display = document.getElementById('holiday-display');
+    const subtext = document.getElementById('holiday-subtext');
+
+    if (next) {
+      const diffTime = next.date - now;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) {
+        display.innerText = `🎉 ${next.name}`;
+        display.className = "weekend-gold";
+        subtext.innerText = "Today is a public holiday! Enjoy!";
+      } else {
+        const options = { weekday: 'short', day: 'numeric', month: 'short' };
+        const formattedDate = next.date.toLocaleDateString('en-NZ', options);
+        display.innerText = `${diffDays} Days`;
+        display.className = "countdown-black";
+        subtext.innerText = `Until ${next.name} (${formattedDate})`;
+      }
+    }
+  }
+
+  /* --- DARK HUMOUR QUOTE LOGIC --- */
+  function renderDarkQuote() {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const diff = now - start;
+    const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const jokeIndex = dayOfYear % DARK_JOKES.length;
+    
+    const el = document.getElementById('dark-joke-display');
+    if (el) {
+      el.innerText = `"${DARK_JOKES[jokeIndex]}"`;
+    }
+  }
+
+  /* --- GROCERY CHECKLIST LOGIC --- */
+  async function toggleGrocery(index) {
+    const items = JSON.parse(localStorage.getItem(GROCERY_KEY) || JSON.stringify(DEFAULT_GROCERIES));
+    if (items[index]) {
+      items[index].checked = !items[index].checked;
+      localStorage.setItem(GROCERY_KEY, JSON.stringify(items));
+      renderGroceries();
+      await saveCloudData();
+    }
+  }
+
+  async function addGroceryItem(e) {
+    if (e) e.preventDefault();
+    const input = document.getElementById('groceryInput');
+    const name = input.value.trim();
+    if (!name) return;
+    const items = JSON.parse(localStorage.getItem(GROCERY_KEY) || JSON.stringify(DEFAULT_GROCERIES));
+    items.push({ name: name, checked: false });
+    localStorage.setItem(GROCERY_KEY, JSON.stringify(items));
+    input.value = '';
+    renderGroceries();
+    await saveCloudData();
+  }
+
+  async function removeGroceryItem(index) {
+    const items = JSON.parse(localStorage.getItem(GROCERY_KEY) || JSON.stringify(DEFAULT_GROCERIES));
+    items.splice(index, 1);
+    localStorage.setItem(GROCERY_KEY, JSON.stringify(items));
+    renderGroceries();
+    await saveCloudData();
+  }
+
+  async function resetGroceries() {
+    const items = JSON.parse(localStorage.getItem(GROCERY_KEY) || JSON.stringify(DEFAULT_GROCERIES));
+    items.forEach(i => i.checked = false);
+    localStorage.setItem(GROCERY_KEY, JSON.stringify(items));
+    renderGroceries();
+    await saveCloudData();
+  }
+
+  function renderGroceries() {
+    const list = document.getElementById('groceryList');
+    if (!list) return;
+    const items = JSON.parse(localStorage.getItem(GROCERY_KEY) || JSON.stringify(DEFAULT_GROCERIES));
+    list.innerHTML = '';
+    items.forEach((item, index) => {
+      const li = document.createElement('li');
+      li.style.cursor = 'pointer';
+      const isChecked = item.checked ? 'text-decoration: line-through; color: #94a3b8;' : 'font-weight: 600; color: #1e293b;';
+      const checkIcon = item.checked ? '✅' : '⬜';
+
+      li.innerHTML = `
+        <div onclick="toggleGrocery(${index})" style="flex:1; display:flex; align-items:center; gap:10px; ${isChecked}">
+          <span style="font-size:18px;">${checkIcon}</span>
+          <span>${escapeHtml(item.name)}</span>
+        </div>
+        <button type="button" class="delete-item-btn" onclick="removeGroceryItem(${index})">✕</button>
+      `;
+      list.appendChild(li);
+    });
+  }
 
   /* --- RELIABLE CLOUD FETCH --- */
   async function fetchCloudData() {
@@ -335,6 +525,10 @@
           if (Array.isArray(cloudData.shop)) localStorage.setItem(SHOP_KEY, JSON.stringify(cloudData.shop));
           if (Array.isArray(cloudData.scratch)) localStorage.setItem(SCRATCH_KEY, JSON.stringify(cloudData.scratch));
           if (Array.isArray(cloudData.shows)) localStorage.setItem(SHOW_KEY, JSON.stringify(cloudData.shows));
+          if (Array.isArray(cloudData.groceries) && cloudData.groceries.length > 0) {
+            localStorage.setItem(GROCERY_KEY, JSON.stringify(cloudData.groceries));
+            renderGroceries();
+          }
 
           renderShopItems();
           renderScratch();
@@ -354,7 +548,8 @@
       const payload = {
         shop: JSON.parse(localStorage.getItem(SHOP_KEY) || '[]'),
         scratch: JSON.parse(localStorage.getItem(SCRATCH_KEY) || '[]'),
-        shows: JSON.parse(localStorage.getItem(SHOW_KEY) || '[]')
+        shows: JSON.parse(localStorage.getItem(SHOW_KEY) || '[]'),
+        groceries: JSON.parse(localStorage.getItem(GROCERY_KEY) || JSON.stringify(DEFAULT_GROCERIES))
       };
 
       await fetch(GOOGLE_SCRIPT_URL, {
