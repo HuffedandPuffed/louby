@@ -1,0 +1,18 @@
+# Louby sync service. Deploy from this folder with:  npx wrangler deploy
+# The household code is a secret, set once with:     npx wrangler secret put HOUSEHOLD_CODE
+name = "louby-sync"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+workers_dev = false
+
+routes = [
+  { pattern = "louby.com/api/*", zone_name = "louby.com" }
+]
+
+[[durable_objects.bindings]]
+name = "HOUSEHOLD"
+class_name = "Household"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Household"]
