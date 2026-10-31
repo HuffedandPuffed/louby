@@ -56,6 +56,7 @@
       gap: 20px;
       margin-bottom: 24px;
       align-items: start;
+      grid-auto-flow: dense; /* let small cards fill the gap left by the full-width watchlist */
     }
 
     .card {
@@ -206,6 +207,123 @@
       font-weight: bold;
     }
     .delete-item-btn:hover { color: #ef4444; }
+
+    /* --- TV WATCHLIST --- */
+    .badge-disney { background-color: #113ccf; }
+    .badge-apple { background-color: #000000; }
+    .badge-sky { background-color: #0072c9; }
+    .badge-paramount { background-color: #0064ff; }
+    .badge-youtube { background-color: #ff0000; }
+
+    .watch-card { grid-column: 1 / -1; }
+    .watch-head {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
+    }
+    .watch-head h3 { margin: 0; }
+    .pick-btn {
+      background: #7c3aed; color: white; border: none; border-radius: 8px;
+      padding: 8px 14px; font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .pick-btn:hover { background: #6d28d9; }
+
+    .watch-add {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+      gap: 8px; margin-bottom: 12px;
+    }
+    .watch-add input, .watch-add select {
+      padding: 12px; font-size: 15px; border: 2px solid #e2e8f0; border-radius: 8px;
+      outline: none; min-width: 0; background: white; width: 100%; box-sizing: border-box;
+    }
+    .watch-add input:focus, .watch-add select:focus { border-color: #d8b4fe; }
+    .add-btn {
+      padding: 0 20px; font-size: 15px; font-weight: 600; color: white;
+      background: #0284c7; border: none; border-radius: 8px; cursor: pointer;
+    }
+    .add-btn:hover { background: #0369a1; }
+
+    .search-wrap { position: relative; min-width: 0; }
+    .search-results {
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 20;
+      display: none; max-height: 380px; overflow-y: auto;
+      background: white; border: 2px solid #d8b4fe; border-radius: 10px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+    }
+    .search-results.open { display: block; }
+    .search-result {
+      display: flex; gap: 10px; align-items: center; padding: 8px 10px;
+      cursor: pointer; border-bottom: 1px solid #f1f5f9;
+    }
+    .search-result:hover, .search-result.active { background: #faf5ff; }
+    .sr-poster {
+      width: 34px; height: 48px; object-fit: cover; border-radius: 4px;
+      background: #e2e8f0; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    }
+    .sr-name { font-weight: 600; font-size: 15px; }
+    .sr-meta { font-size: 12px; color: #64748b; }
+    .search-hint { padding: 10px 12px; font-size: 13px; color: #64748b; }
+
+    .watch-filters {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 10px; flex-wrap: wrap; margin-bottom: 12px;
+    }
+    .tabs, .who-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tab-btn, .chip-btn {
+      border: 1px solid #e2e8f0; background: #f8fafc; color: #334155; border-radius: 999px;
+      padding: 7px 14px; font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .tab-btn.active { background: #7c3aed; border-color: #7c3aed; color: white; }
+    .chip-btn { font-size: 12px; padding: 5px 11px; }
+    .chip-btn.active { background: #f3e8ff; border-color: #c084fc; color: #6b21a8; }
+    .watch-msg { min-height: 20px; font-size: 14px; font-weight: 600; color: #6b21a8; margin: 0 0 8px; }
+
+    .show-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+    .show-tile {
+      display: flex; gap: 12px; padding: 10px; border: 1px solid #e2e8f0;
+      border-radius: 12px; background: white; transition: box-shadow 0.2s;
+    }
+    .show-tile.picked { border-color: #7c3aed; box-shadow: 0 0 0 3px #e9d5ff; }
+    .show-poster {
+      width: 64px; height: 92px; border-radius: 6px; object-fit: cover; background: #e2e8f0;
+      flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 26px;
+    }
+    .show-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+    .show-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
+    .show-top .delete-item-btn { padding: 0 4px; font-size: 16px; }
+    .show-tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .who-tag {
+      font-size: 11px; font-weight: 600; color: #6b21a8; background: #f3e8ff;
+      padding: 2px 8px; border-radius: 999px;
+    }
+    .air-note { font-size: 12px; color: #64748b; }
+    .air-note.soon { color: #15803d; font-weight: 600; }
+    .ep-tracker { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .ep-label { font-weight: 700; font-size: 15px; min-width: 74px; text-align: center; }
+    .ep-btn {
+      width: 32px; height: 32px; border-radius: 8px; border: 1px solid #cbd5e1;
+      background: #f8fafc; color: #334155; font-size: 17px; font-weight: 700; cursor: pointer;
+    }
+    .ep-btn.plus { background: #22c55e; border-color: #22c55e; color: white; }
+    .show-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: auto; }
+    .show-actions a.action-sm-btn { text-decoration: none; }
+    .start-btn { background-color: #7c3aed; }
+    .stars button {
+      background: none; border: none; font-size: 22px; cursor: pointer;
+      padding: 0 1px; color: #cbd5e1; line-height: 1;
+    }
+    .stars button.on { color: #eab308; }
+    .empty-note { color: #94a3b8; font-size: 14px; padding: 12px 0; margin: 0; }
+    .tvmaze-credit { font-size: 11px; color: #94a3b8; margin: 12px 0 0; text-align: right; }
+    .tvmaze-credit a { color: #94a3b8; }
+
+    @media (max-width: 640px) {
+      body { padding: 14px; }
+      .watch-add { grid-template-columns: 1fr 1fr; }
+      .watch-add .search-wrap { grid-column: 1 / -1; }
+      .add-btn { grid-column: 1 / -1; padding: 12px; }
+      .show-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -244,6 +362,56 @@
     <div class="card">
       <h3>🌤️ Kauri Weather</h3>
       <div id="weather-display" class="condition-text">Loading local weather...</div>
+    </div>
+
+    <!-- TV WATCHLIST (full width) -->
+    <div class="card watch-card">
+      <div class="watch-head">
+        <h3>📺 TV Watchlist</h3>
+        <button type="button" class="pick-btn" id="pickTonightBtn">🎲 What shall we watch tonight?</button>
+      </div>
+      <div class="watch-add">
+        <div class="search-wrap">
+          <input type="text" id="showInput" placeholder="Search for a show to add..." autocomplete="off" aria-label="Search for a show">
+          <div id="showResults" class="search-results" role="listbox"></div>
+        </div>
+        <select id="networkSelect" aria-label="Where to watch">
+          <option value="">Where? (auto)</option>
+          <option value="Netflix">Netflix</option>
+          <option value="TVNZ+">TVNZ+</option>
+          <option value="ThreeNow">ThreeNow</option>
+          <option value="Neon">Neon</option>
+          <option value="Prime Video">Prime Video</option>
+          <option value="Disney+">Disney+</option>
+          <option value="Apple TV+">Apple TV+</option>
+          <option value="Sky Go">Sky Go</option>
+          <option value="Paramount+">Paramount+</option>
+          <option value="YouTube">YouTube</option>
+          <option value="Other">Other</option>
+        </select>
+        <select id="whoSelect" aria-label="Who is it for">
+          <option value="Both">👫 Both of us</option>
+          <option value="Louby">Louby</option>
+          <option value="Colin">Colin</option>
+        </select>
+        <button type="button" class="add-btn" id="addShowBtn">Add</button>
+      </div>
+      <div class="watch-filters">
+        <div class="tabs" id="watchTabs">
+          <button type="button" class="tab-btn" data-tab="watching">▶️ Watching <span></span></button>
+          <button type="button" class="tab-btn" data-tab="next">📋 Up next <span></span></button>
+          <button type="button" class="tab-btn" data-tab="done">✅ Finished <span></span></button>
+        </div>
+        <div class="who-chips" id="whoChips">
+          <button type="button" class="chip-btn active" data-who="All">Everyone</button>
+          <button type="button" class="chip-btn" data-who="Both">👫 Both</button>
+          <button type="button" class="chip-btn" data-who="Louby">Louby</button>
+          <button type="button" class="chip-btn" data-who="Colin">Colin</button>
+        </div>
+      </div>
+      <p id="watchMsg" class="watch-msg" role="status" aria-live="polite"></p>
+      <div id="showList" class="show-grid"></div>
+      <p class="tvmaze-credit">Show info and posters from <a href="https://www.tvmaze.com" target="_blank" rel="noopener">TVmaze</a></p>
     </div>
 
     <!-- 5. QUICK LAUNCHPAD -->
@@ -305,24 +473,6 @@
       </div>
       <button type="button" class="wide-btn btn-blue" onclick="addScratch(event)">Add Note</button>
       <ul id="scratchList" class="dashboard-list"></ul>
-    </div>
-
-    <!-- 9. TV WATCHLIST -->
-    <div class="card">
-      <h3>📺 TV Watchlist</h3>
-      <div class="input-row">
-        <input type="text" id="showInput" placeholder="Show name" onkeydown="if(event.key==='Enter'){event.preventDefault();addShow();}">
-        <select id="networkSelect">
-          <option value="Netflix">Netflix</option>
-          <option value="TVNZ+">TVNZ+</option>
-          <option value="Amazon Prime">Amazon Prime</option>
-          <option value="ThreeNow">ThreeNow</option>
-          <option value="Neon">Neon</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-      <button type="button" class="wide-btn btn-blue" onclick="addShow(event)">Add Show</button>
-      <ul id="showList" class="dashboard-list"></ul>
     </div>
 
   </div>
@@ -394,12 +544,14 @@
     updateNextHoliday();
     renderDarkQuote();
     renderScratch();
+    initWatchlist();
     renderShows();
     renderShopItems();
     renderGroceries();
 
     await checkIncomingUrl();
     await fetchCloudData();
+    refreshAirInfo();
 
     setInterval(fetchCloudData, 8000);
   });
@@ -581,6 +733,13 @@
     const urlMatch = combinedText.match(/(https?:\/\/[^\s]+)/g);
     if (urlMatch && urlMatch[0]) {
       let link = urlMatch[0].replace(/[;,\)\.]*$/, '');
+
+      const service = streamingServiceFor(link);
+      if (service) {
+        await addSharedShow(link, service, rawTitle, rawText.replace(link, ''));
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+      }
 
       let itemName = rawTitle.trim();
       if (!itemName || itemName === 'Saved Item') {
@@ -768,46 +927,478 @@
     });
   }
 
-  /* --- TV WATCHLIST LOGIC --- */
-  async function addShow(e) {
-    if (e) e.preventDefault();
-    const input = document.getElementById('showInput');
-    const netSelect = document.getElementById('networkSelect');
-    const name = input.value.trim();
-    if (!name) return;
-    const items = JSON.parse(localStorage.getItem(SHOW_KEY) || '[]');
-    items.push({ name, network: netSelect.value });
-    localStorage.setItem(SHOW_KEY, JSON.stringify(items));
-    input.value = '';
-    renderShows();
+  /* --- TV WATCHLIST LOGIC ---
+     Each show: { id, name, network, who, status: 'watching' | 'next' | 'done',
+     season, episode (last one watched), rating, link, addedAt, watchedAt, finishedAt,
+     plus TVmaze details: tvmazeId, poster, year, tvStatus, nextAir, checkedAt }.
+     Older entries ({ name, network }) are upgraded when loaded. */
+  const TVMAZE = 'https://api.tvmaze.com';
+  const WATCH_TAB_KEY = 'louby_watch_tab';
+  const BADGES = {
+    'Netflix': 'badge-netflix', 'Prime Video': 'badge-prime', 'TVNZ+': 'badge-tvnz',
+    'ThreeNow': 'badge-threenow', 'Neon': 'badge-neon', 'Disney+': 'badge-disney',
+    'Apple TV+': 'badge-apple', 'Sky Go': 'badge-sky', 'Paramount+': 'badge-paramount',
+    'YouTube': 'badge-youtube'
+  };
+  // Shared links from these sites go to the watchlist instead of the wishlist
+  const STREAMING_SITES = [
+    [/netflix\.com/i, 'Netflix'],
+    [/tvnz\.co\.nz/i, 'TVNZ+'],
+    [/threenow\.co\.nz/i, 'ThreeNow'],
+    [/neontv\.co\.nz/i, 'Neon'],
+    [/primevideo\.com|amazon\.[a-z.]+\/gp\/video/i, 'Prime Video'],
+    [/disneyplus\.com/i, 'Disney+'],
+    [/tv\.apple\.com/i, 'Apple TV+'],
+    [/skygo\.co\.nz|sky\.co\.nz\/(skygo|watch)/i, 'Sky Go'],
+    [/paramountplus\.com/i, 'Paramount+']
+  ];
 
-    await saveCloudData();
+  let watchTab = localStorage.getItem(WATCH_TAB_KEY) || 'next';
+  let watchWho = 'All';
+  let pickedShowId = null;
+  let searchTimer = null;
+  let searchSeq = 0;
+  let searchItems = [];
+  let searchActive = -1;
+  let watchMsgTimer = null;
+
+  function esc(str) {
+    return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
-  async function removeShow(index) {
-    const items = JSON.parse(localStorage.getItem(SHOW_KEY) || '[]');
-    items.splice(index, 1);
-    localStorage.setItem(SHOW_KEY, JSON.stringify(items));
-    renderShows();
+  function newId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
 
-    await saveCloudData();
+  function loadShows() {
+    let raw = [];
+    try { raw = JSON.parse(localStorage.getItem(SHOW_KEY) || '[]'); } catch (e) {}
+    if (!Array.isArray(raw)) raw = [];
+    let upgraded = false;
+    const shows = raw.map((s, i) => {
+      if (s && s.id && s.status) return s;
+      upgraded = true;
+      const show = Object.assign({ id: newId() + i, who: 'Both', status: 'next', season: 1, episode: 0, addedAt: Date.now() + i }, s);
+      if (show.network === 'Amazon Prime') show.network = 'Prime Video';
+      return show;
+    });
+    if (upgraded) localStorage.setItem(SHOW_KEY, JSON.stringify(shows));
+    return shows;
+  }
+
+  function saveShows(shows) {
+    localStorage.setItem(SHOW_KEY, JSON.stringify(shows));
+    renderShows();
+    saveCloudData();
+  }
+
+  function updateShow(id, changes) {
+    const shows = loadShows();
+    const show = shows.find(s => s.id === id);
+    if (!show) return;
+    Object.assign(show, typeof changes === 'function' ? changes(show) : changes);
+    saveShows(shows);
+  }
+
+  function showWatchMsg(text) {
+    const el = document.getElementById('watchMsg');
+    el.textContent = text;
+    clearTimeout(watchMsgTimer);
+    watchMsgTimer = setTimeout(() => { el.textContent = ''; }, 5000);
+  }
+
+  function setWatchTab(tab) {
+    watchTab = tab;
+    localStorage.setItem(WATCH_TAB_KEY, tab);
+    renderShows();
+  }
+
+  function matchesWho(show) {
+    if (watchWho === 'All') return true;
+    if (watchWho === 'Both') return show.who === 'Both';
+    return show.who === watchWho || show.who === 'Both';
+  }
+
+  function guessService(show) {
+    const name = ((show.webChannel && show.webChannel.name) || (show.network && show.network.name) || '').toLowerCase();
+    const country = (show.network && show.network.country && show.network.country.code) || '';
+    if (name.includes('netflix')) return 'Netflix';
+    if (name.includes('prime video') || name.includes('amazon')) return 'Prime Video';
+    if (name.includes('disney+') || name.includes('hulu') || /^fxx?$/.test(name)) return 'Disney+'; // Hulu and FX shows stream on Disney+ in NZ
+    if (name.includes('apple tv')) return 'Apple TV+';
+    if (name.includes('paramount+')) return 'Paramount+';
+    if (name.includes('youtube')) return 'YouTube';
+    if (name.includes('tvnz')) return 'TVNZ+';
+    if (country === 'NZ' && name.includes('three')) return 'ThreeNow';
+    if (name.includes('hbo') || name === 'max') return 'Neon'; // HBO shows stream on Neon in NZ
+    return '';
+  }
+
+  function fromTvmaze(show) {
+    return {
+      name: show.name,
+      tvmazeId: show.id,
+      poster: (show.image && show.image.medium) || '',
+      year: (show.premiered || '').slice(0, 4),
+      tvStatus: show.status || '',
+      guessed: guessService(show)
+    };
+  }
+
+  function addShowRecord(info, network) {
+    const shows = loadShows();
+    const existing = shows.find(s =>
+      (info.tvmazeId && s.tvmazeId === info.tvmazeId) || s.name.toLowerCase() === info.name.toLowerCase());
+    if (existing) {
+      pickedShowId = existing.id;
+      setWatchTab(existing.status);
+      showWatchMsg(`${existing.name} is already on the list.`);
+      return;
+    }
+    const show = {
+      id: newId(),
+      name: info.name,
+      network: network || document.getElementById('networkSelect').value || info.guessed || 'Other',
+      who: document.getElementById('whoSelect').value,
+      status: 'next',
+      season: 1,
+      episode: 0,
+      addedAt: Date.now()
+    };
+    ['tvmazeId', 'poster', 'year', 'tvStatus', 'link'].forEach(k => { if (info[k]) show[k] = info[k]; });
+    shows.push(show);
+    pickedShowId = show.id;
+    watchTab = 'next';
+    localStorage.setItem(WATCH_TAB_KEY, watchTab);
+    saveShows(shows);
+    showWatchMsg(`Added ${show.name} to Up next.`);
+    if (show.tvmazeId) refreshAirInfo();
+  }
+
+  /* Search box: live results from TVmaze, plus "add as typed" */
+  function closeSearch() {
+    document.getElementById('showResults').classList.remove('open');
+    searchActive = -1;
+  }
+
+  async function runSearch(query) {
+    const seq = ++searchSeq;
+    const box = document.getElementById('showResults');
+    box.innerHTML = '<div class="search-hint">Searching...</div>';
+    box.classList.add('open');
+    let failed = false;
+    try {
+      const res = await fetch(`${TVMAZE}/search/shows?q=${encodeURIComponent(query)}`);
+      const data = res.ok ? await res.json() : [];
+      if (seq !== searchSeq) return;
+      searchItems = data.slice(0, 8).map(r => r.show);
+    } catch (e) {
+      if (seq !== searchSeq) return;
+      searchItems = [];
+      failed = true;
+    }
+    renderSearch(query, failed);
+  }
+
+  function renderSearch(query, failed) {
+    const box = document.getElementById('showResults');
+    let html = searchItems.map((show, i) => {
+      const poster = show.image && show.image.medium
+        ? `<img class="sr-poster" src="${esc(show.image.medium)}" alt="">`
+        : '<div class="sr-poster">📺</div>';
+      const where = (show.webChannel && show.webChannel.name) || (show.network && show.network.name) || '';
+      const meta = [(show.premiered || '').slice(0, 4), where, show.status === 'Ended' ? 'Ended' : ''].filter(Boolean).join(' · ');
+      return `<div class="search-result${i === searchActive ? ' active' : ''}" data-idx="${i}" role="option">${poster}<div><div class="sr-name">${esc(show.name)}</div><div class="sr-meta">${esc(meta)}</div></div></div>`;
+    }).join('');
+    if (failed) html += '<div class="search-hint">Show search is unavailable right now.</div>';
+    else if (!searchItems.length) html += '<div class="search-hint">No shows found.</div>';
+    html += `<div class="search-result${searchActive === searchItems.length ? ' active' : ''}" data-idx="manual" role="option"><div class="sr-poster">➕</div><div class="sr-name">Add "${esc(query)}" as typed</div></div>`;
+    box.innerHTML = html;
+    box.classList.add('open');
+  }
+
+  function chooseResult(idx) {
+    const input = document.getElementById('showInput');
+    const query = input.value.trim();
+    if (idx === 'manual' || idx >= searchItems.length) {
+      if (query) addShowRecord({ name: query });
+    } else {
+      addShowRecord(fromTvmaze(searchItems[idx]));
+    }
+    input.value = '';
+    searchItems = [];
+    closeSearch();
+  }
+
+  function submitShowInput() {
+    const input = document.getElementById('showInput');
+    if (!input.value.trim()) return;
+    const open = document.getElementById('showResults').classList.contains('open');
+    if (open && searchActive >= 0) chooseResult(searchActive === searchItems.length ? 'manual' : searchActive);
+    else if (open && searchItems.length) chooseResult(0);
+    else chooseResult('manual');
+  }
+
+  /* Next-episode dates from TVmaze, refreshed at most every 12 hours per show */
+  async function refreshAirInfo() {
+    const due = loadShows().filter(s =>
+      s.tvmazeId && s.tvStatus !== 'Ended' && (!s.checkedAt || Date.now() - s.checkedAt > 12 * 3600 * 1000));
+    if (!due.length) return;
+    const updates = {};
+    for (const s of due.slice(0, 15)) {
+      try {
+        const res = await fetch(`${TVMAZE}/shows/${s.tvmazeId}?embed=nextepisode`);
+        if (!res.ok) continue;
+        const data = await res.json();
+        const next = data._embedded && data._embedded.nextepisode;
+        updates[s.id] = {
+          tvStatus: data.status || s.tvStatus || '',
+          poster: s.poster || (data.image && data.image.medium) || '',
+          nextAir: next && next.airdate ? { date: next.airdate, season: next.season, number: next.number } : null,
+          checkedAt: Date.now()
+        };
+      } catch (e) {}
+      await new Promise(r => setTimeout(r, 300));
+    }
+    if (!Object.keys(updates).length) return;
+    const shows = loadShows();
+    shows.forEach(s => { if (updates[s.id]) Object.assign(s, updates[s.id]); });
+    saveShows(shows);
+  }
+
+  function daysUntil(isoDate) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.round((new Date(isoDate + 'T00:00:00') - today) / (1000 * 60 * 60 * 24));
+  }
+
+  function shortDate(isoDate) {
+    return new Date(isoDate + 'T00:00:00').toLocaleDateString('en-NZ', { day: 'numeric', month: 'short' });
+  }
+
+  function airNote(show) {
+    if (show.status === 'done' && !(show.nextAir && show.nextAir.number === 1)) return '';
+    if (show.nextAir && show.nextAir.date) {
+      const days = daysUntil(show.nextAir.date);
+      if (days >= 0) {
+        let text;
+        if (show.nextAir.number === 1) text = `Season ${show.nextAir.season} starts ${days === 0 ? 'today' : shortDate(show.nextAir.date)}`;
+        else if (days === 0) text = 'New episode today';
+        else if (days === 1) text = 'New episode tomorrow';
+        else if (days < 7) text = `New episode ${new Date(show.nextAir.date + 'T00:00:00').toLocaleDateString('en-NZ', { weekday: 'long' })}`;
+        else text = `Next episode ${shortDate(show.nextAir.date)}`;
+        return `<span class="air-note${days < 7 ? ' soon' : ''}">📅 ${text}</span>`;
+      }
+    }
+    if (show.tvStatus === 'Ended' && show.status !== 'done') return '<span class="air-note">Series has ended</span>';
+    return '';
+  }
+
+  function showTile(show) {
+    const poster = show.poster
+      ? `<img class="show-poster" src="${esc(show.poster)}" alt="" loading="lazy">`
+      : '<div class="show-poster">📺</div>';
+    const badge = show.network
+      ? `<span class="network-badge ${BADGES[show.network] || 'badge-other'}">${esc(show.network)}</span>` : '';
+    const who = `<span class="who-tag">${show.who === 'Both' ? '👫 Both' : esc(show.who)}</span>`;
+    const year = show.year ? `<span class="air-note">${esc(show.year)}</span>` : '';
+    const open = show.link
+      ? `<a class="action-sm-btn" href="${esc(show.link)}" target="_blank" rel="noopener">🔗 Open</a>` : '';
+    let middle = '';
+    let actions = '';
+    if (show.status === 'watching') {
+      const label = show.episode > 0 ? `S${show.season} · E${show.episode}` : `S${show.season} · not started`;
+      middle = `<div class="ep-tracker">
+          <button type="button" class="ep-btn" data-act="ep-minus" aria-label="Back one episode">−</button>
+          <span class="ep-label" title="Last episode watched">${label}</span>
+          <button type="button" class="ep-btn plus" data-act="ep-plus" aria-label="Watched the next episode">+</button>
+          <button type="button" class="action-sm-btn" data-act="season">Next season</button>
+        </div>`;
+      actions = `<button type="button" class="done-btn" data-act="finish">✓ Finished</button>
+        <button type="button" class="action-sm-btn" data-act="to-next">↩ Up next</button>`;
+    } else if (show.status === 'next') {
+      actions = '<button type="button" class="done-btn start-btn" data-act="start">▶ Start watching</button>';
+    } else {
+      const stars = [1, 2, 3, 4, 5].map(n =>
+        `<button type="button" class="${(show.rating || 0) >= n ? 'on' : ''}" data-act="rate" data-val="${n}" aria-label="${n} star${n > 1 ? 's' : ''}">★</button>`).join('');
+      const when = show.finishedAt ? `<span class="air-note">Finished ${new Date(show.finishedAt).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })}</span>` : '';
+      middle = `<div class="stars">${stars}</div>${when}`;
+      actions = '<button type="button" class="action-sm-btn" data-act="rewatch">↻ Watch again</button>';
+    }
+    return `<div class="show-tile${show.id === pickedShowId ? ' picked' : ''}" data-id="${esc(show.id)}">
+        ${poster}
+        <div class="show-body">
+          <div class="show-top">
+            <span class="show-name">${esc(show.name)}</span>
+            <button type="button" class="delete-item-btn" data-act="delete" aria-label="Remove ${esc(show.name)}">✕</button>
+          </div>
+          <div class="show-tags">${badge}${who}${year}</div>
+          ${airNote(show)}
+          ${middle}
+          <div class="show-actions">${actions}${open}</div>
+        </div>
+      </div>`;
   }
 
   function renderShows() {
     const list = document.getElementById('showList');
-    const items = JSON.parse(localStorage.getItem(SHOW_KEY) || '[]');
-    list.innerHTML = '';
-    items.forEach((show, index) => {
-      const li = document.createElement('li');
-      let bCls = 'badge-other';
-      if (show.network === 'Netflix') bCls = 'badge-netflix';
-      if (show.network === 'Amazon Prime') bCls = 'badge-prime';
-      if (show.network === 'TVNZ+') bCls = 'badge-tvnz';
-      if (show.network === 'ThreeNow') bCls = 'badge-threenow';
-      if (show.network === 'Neon') bCls = 'badge-neon';
-      li.innerHTML = `<div class="show-details"><span class="show-name">${escapeHtml(show.name)}</span><span class="network-badge ${bCls}">${escapeHtml(show.network)}</span></div><button type="button" class="done-btn" onclick="removeShow(${index})">✓ Done</button>`;
-      list.appendChild(li);
+    if (!list) return;
+    const shows = loadShows().filter(matchesWho);
+
+    document.querySelectorAll('#watchTabs .tab-btn').forEach(btn => {
+      const count = shows.filter(s => s.status === btn.dataset.tab).length;
+      btn.classList.toggle('active', btn.dataset.tab === watchTab);
+      btn.querySelector('span').textContent = count ? `(${count})` : '';
     });
+    document.querySelectorAll('#whoChips .chip-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.who === watchWho);
+    });
+
+    const inTab = shows.filter(s => s.status === watchTab);
+    if (watchTab === 'watching') inTab.sort((a, b) => (b.watchedAt || b.addedAt || 0) - (a.watchedAt || a.addedAt || 0));
+    else if (watchTab === 'done') inTab.sort((a, b) => (b.finishedAt || 0) - (a.finishedAt || 0));
+    else inTab.sort((a, b) => (a.addedAt || 0) - (b.addedAt || 0));
+
+    const empty = {
+      watching: 'Nothing on the go. Pick something from Up next and press ▶ Start watching.',
+      next: 'Nothing queued up. Search for a show above to add it.',
+      done: 'Finished shows land here, so you can rate them and remember what you\'ve seen.'
+    };
+    list.innerHTML = inTab.length ? inTab.map(showTile).join('') : `<p class="empty-note">${empty[watchTab]}</p>`;
+  }
+
+  function handleShowAction(e) {
+    const btn = e.target.closest('[data-act]');
+    const tile = e.target.closest('.show-tile');
+    if (!btn || !tile) return;
+    const id = tile.dataset.id;
+    pickedShowId = null;
+    switch (btn.dataset.act) {
+      case 'ep-plus':
+        updateShow(id, s => ({ episode: (s.episode || 0) + 1, watchedAt: Date.now() }));
+        break;
+      case 'ep-minus':
+        updateShow(id, s => ({ episode: Math.max(0, (s.episode || 0) - 1) }));
+        break;
+      case 'season':
+        updateShow(id, s => ({ season: (s.season || 1) + 1, episode: 0, watchedAt: Date.now() }));
+        break;
+      case 'start':
+        updateShow(id, { status: 'watching', watchedAt: Date.now() });
+        showWatchMsg('Moved to Watching. Press + after each episode to keep your place.');
+        break;
+      case 'to-next':
+        updateShow(id, { status: 'next' });
+        break;
+      case 'finish':
+        updateShow(id, { status: 'done', finishedAt: Date.now() });
+        showWatchMsg('Nice one! It\'s in Finished — give it a star rating.');
+        break;
+      case 'rewatch':
+        updateShow(id, { status: 'watching', season: 1, episode: 0, watchedAt: Date.now() });
+        break;
+      case 'rate':
+        updateShow(id, { rating: Number(btn.dataset.val) });
+        break;
+      case 'delete': {
+        const show = loadShows().find(s => s.id === id);
+        if (show && confirm(`Remove ${show.name} from the watchlist?`)) {
+          saveShows(loadShows().filter(s => s.id !== id));
+        }
+        break;
+      }
+    }
+  }
+
+  function pickTonight() {
+    const choices = loadShows().filter(s => (s.status === 'watching' || s.status === 'next') && matchesWho(s));
+    if (!choices.length) {
+      showWatchMsg('Add some shows first, then I\'ll pick one for you!');
+      return;
+    }
+    const pick = choices[Math.floor(Math.random() * choices.length)];
+    pickedShowId = pick.id;
+    setWatchTab(pick.status);
+    showWatchMsg(`🎲 Tonight's pick: ${pick.name}${pick.network && pick.network !== 'Other' ? ` on ${pick.network}` : ''}!`);
+    const tile = document.querySelector(`.show-tile[data-id="${CSS.escape(pick.id)}"]`);
+    if (tile) tile.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  /* Shared links (Android share menu) from streaming sites */
+  function streamingServiceFor(link) {
+    const match = STREAMING_SITES.find(([pattern]) => pattern.test(link));
+    return match ? match[1] : '';
+  }
+
+  function cleanShowName(text) {
+    let t = String(text || '');
+    const quoted = t.match(/[“"]([^”"]+)[”"]/);
+    if (quoted) t = quoted[1];
+    return t.replace(/https?:\/\/\S+/g, '')
+      .replace(/^(watch|check out|i'm watching|stream)\s+/i, '')
+      .replace(/\s+on (netflix|tvnz\+?|threenow|neon|prime video|disney\+|apple tv\+?|sky go|paramount\+).*$/i, '')
+      .replace(/\s*[|\-–—:]\s*(netflix|tvnz\+?|threenow|neon|prime video|amazon|disney\+|apple tv\+?|sky go|paramount\+).*$/i, '')
+      .replace(/\s*(official site|online)\s*$/i, '')
+      .replace(/\s*[-–—:,]?\s*(season|series)\s+\d+.*$/i, '')
+      .trim();
+  }
+
+  async function addSharedShow(link, service, title, text) {
+    const name = cleanShowName(title) || cleanShowName(text);
+    let info = { name: name || 'Shared show', link };
+    if (name) {
+      try {
+        const res = await fetch(`${TVMAZE}/singlesearch/shows?q=${encodeURIComponent(name)}`);
+        if (res.ok) info = Object.assign(fromTvmaze(await res.json()), { link });
+      } catch (e) {}
+    }
+    addShowRecord(info, service);
+    document.querySelector('.watch-card').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function initWatchlist() {
+    const input = document.getElementById('showInput');
+    input.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchActive = -1;
+      const query = input.value.trim();
+      if (query.length < 2) { searchSeq++; closeSearch(); return; }
+      searchTimer = setTimeout(() => runSearch(query), 300);
+    });
+    input.addEventListener('keydown', (e) => {
+      const open = document.getElementById('showResults').classList.contains('open');
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitShowInput();
+      } else if (e.key === 'Escape') {
+        closeSearch();
+      } else if (open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+        e.preventDefault();
+        const total = searchItems.length + 1;
+        searchActive = e.key === 'ArrowDown' ? (searchActive + 1) % total : (searchActive - 1 + total) % total;
+        renderSearch(input.value.trim(), false);
+      }
+    });
+    document.getElementById('showResults').addEventListener('mousedown', (e) => {
+      const row = e.target.closest('.search-result');
+      if (!row) return;
+      e.preventDefault();
+      chooseResult(row.dataset.idx === 'manual' ? 'manual' : Number(row.dataset.idx));
+    });
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-wrap')) closeSearch();
+    });
+    document.getElementById('addShowBtn').addEventListener('click', submitShowInput);
+    document.getElementById('pickTonightBtn').addEventListener('click', pickTonight);
+    document.getElementById('watchTabs').addEventListener('click', (e) => {
+      const btn = e.target.closest('.tab-btn');
+      if (btn) { pickedShowId = null; setWatchTab(btn.dataset.tab); }
+    });
+    document.getElementById('whoChips').addEventListener('click', (e) => {
+      const btn = e.target.closest('.chip-btn');
+      if (btn) { watchWho = btn.dataset.who; pickedShowId = null; renderShows(); }
+    });
+    document.getElementById('showList').addEventListener('click', handleShowAction);
   }
 
   /* --- KAURI WEATHER --- */
