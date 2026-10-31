@@ -50,6 +50,17 @@
       object-fit: contain;
     }
 
+    .welcome-banner { position: relative; flex-wrap: wrap; }
+    .sync-pill {
+      position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+      border: 1px solid #e2e8f0; background: #f8fafc; color: #64748b; border-radius: 999px;
+      padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .sync-pill.warn { background: #fff7ed; border-color: #fdba74; color: #c2410c; }
+    @media (max-width: 760px) {
+      .sync-pill { position: static; transform: none; flex-basis: 100%; max-width: max-content; margin: 2px auto 0; }
+    }
+
     .dashboard-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -334,6 +345,7 @@
   <div class="welcome-banner">
     <h1>Welcome, Louby!</h1>
     <img src="louby2.webp" alt="Louby Icon" class="banner-img">
+    <button type="button" id="syncStatus" class="sync-pill" title="Sync between devices"></button>
   </div>
 
   <div class="dashboard-grid">
@@ -484,7 +496,6 @@
   const SHOW_KEY = 'louby_watchlist_data';
   const SHOP_KEY = 'louby_shopping_data';
   const GROCERY_KEY = 'louby_grocery_data';
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPaRrtjq8hV8avootg83LWtslz62fqu8PhkY_qI4Ea7qnllVj5HTUAxKjG3M2xhIsQ/exec';
 
   const DEFAULT_GROCERIES = [
     { name: 'Milk 🥛', checked: false },
@@ -517,13 +528,22 @@
   const DARK_JOKES = window.DARK_JOKES || ["I was going to tell a joke about a missing person, but it hasn't turned up yet."];
   const JOKES_START = Date.UTC(2026, 10, 1); // day 1 of the list: 1 November 2026
 
-  let lastLocalChangeTime = 0;
-  let isSaving = false;
+  const SYNC_URL = '/api/sync';
+  const SYNC_CODE_KEY = 'louby_household_code';
+  const LIST_META_KEY = 'louby_list_sync_meta';
+  let syncState = 'setup';
+  let lastSyncedAt = 0;
+  let syncInFlight = false;
+  let syncAgain = false;
+  let syncTimer = null;
 
   document.addEventListener('DOMContentLoaded', async () => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js');
     }
+    readCodeFromUrl();
+    document.getElementById('syncStatus').addEventListener('click', connectThisDevice);
+    renderSyncStatus();
     fetchWeather();
     startCountdown();
     updateNextHoliday();
@@ -538,7 +558,11 @@
     await fetchCloudData();
     refreshAirInfo();
 
-    setInterval(fetchCloudData, 8000);
+    // Keep devices up to date while the page is open, and catch up when it's reopened
+    setInterval(() => { if (document.visibilityState === 'visible') fetchCloudData(); }, 15000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') fetchCloudData();
+    });
   });
 
   /* --- NEXT NZ PUBLIC HOLIDAY LOGIC --- */
@@ -652,56 +676,135 @@
     });
   }
 
-  /* --- RELIABLE CLOUD FETCH --- */
-  async function fetchCloudData() {
-    if (isSaving || (Date.now() - lastLocalChangeTime < 8000)) return;
+  /* --- SYNC BETWEEN DEVICES ---
+     Talks to the Louby sync service (sync-worker/ in this repo) at /api/sync.
+     Each device is connected once by opening louby.com/?code=<household code>.
+     Shows merge one by one (see mergeShows); the other lists merge as whole
+     lists, newest change wins. */
+  function syncLists() {
+    return {
+      shop: { key: SHOP_KEY, fallback: '[]', render: () => renderShopItems() },
+      scratch: { key: SCRATCH_KEY, fallback: '[]', render: () => renderScratch() },
+      groceries: { key: GROCERY_KEY, fallback: JSON.stringify(DEFAULT_GROCERIES), render: () => renderGroceries() }
+    };
+  }
 
-    try {
-      const cacheBusterUrl = GOOGLE_SCRIPT_URL + '?t=' + Date.now();
-      const response = await fetch(cacheBusterUrl);
-      if (response.ok) {
-        const cloudData = await response.json();
-        if (cloudData) {
-          if (Array.isArray(cloudData.shop)) localStorage.setItem(SHOP_KEY, JSON.stringify(cloudData.shop));
-          if (Array.isArray(cloudData.scratch)) localStorage.setItem(SCRATCH_KEY, JSON.stringify(cloudData.scratch));
-          if (Array.isArray(cloudData.shows)) localStorage.setItem(SHOW_KEY, JSON.stringify(cloudData.shows));
-          if (Array.isArray(cloudData.groceries) && cloudData.groceries.length > 0) {
-            localStorage.setItem(GROCERY_KEY, JSON.stringify(cloudData.groceries));
-            renderGroceries();
-          }
+  function getSyncCode() {
+    return localStorage.getItem(SYNC_CODE_KEY) || '';
+  }
 
-          renderShopItems();
-          renderScratch();
-          renderShows();
-        }
+  function readListMeta() {
+    try { return JSON.parse(localStorage.getItem(LIST_META_KEY) || '{}'); } catch (e) { return {}; }
+  }
+
+  // Notice which lists changed since the last sync and give them a fresh timestamp
+  function stampListChanges() {
+    const meta = readListMeta();
+    Object.entries(syncLists()).forEach(([name, list]) => {
+      const current = JSON.stringify(JSON.parse(localStorage.getItem(list.key) || list.fallback));
+      const entry = meta[name] || { updatedAt: 0 };
+      // First sync on this device: a list with real items in it counts as new, an empty/default one doesn't
+      const isDefault = current === JSON.stringify(JSON.parse(list.fallback));
+      if (entry.synced === undefined ? !isDefault : entry.synced !== current) entry.updatedAt = Date.now();
+      entry.synced = current;
+      meta[name] = entry;
+    });
+    localStorage.setItem(LIST_META_KEY, JSON.stringify(meta));
+    return meta;
+  }
+
+  function applyServerState(server) {
+    const shows = mergeShows(loadAllShows(), Array.isArray(server.shows) ? server.shows : []);
+    localStorage.setItem(SHOW_KEY, JSON.stringify(shows));
+    renderShows();
+
+    const meta = readListMeta();
+    Object.entries(syncLists()).forEach(([name, list]) => {
+      const remote = server.lists && server.lists[name];
+      if (!remote || !Array.isArray(remote.items)) return;
+      if ((remote.updatedAt || 0) > ((meta[name] && meta[name].updatedAt) || 0)) {
+        const text = JSON.stringify(remote.items);
+        localStorage.setItem(list.key, text);
+        meta[name] = { updatedAt: remote.updatedAt, synced: text };
+        list.render();
       }
+    });
+    localStorage.setItem(LIST_META_KEY, JSON.stringify(meta));
+  }
+
+  function setSyncStatus(state) {
+    syncState = state;
+    if (state === 'ok') lastSyncedAt = Date.now();
+    renderSyncStatus();
+  }
+
+  function renderSyncStatus() {
+    const pill = document.getElementById('syncStatus');
+    if (!pill) return;
+    const labels = {
+      setup: '⚠️ Not syncing — tap to connect',
+      badcode: '⚠️ Code not recognised — tap to fix',
+      offline: '☁️ Offline — will sync when back',
+      syncing: '☁️ Syncing...',
+      ok: '☁️ Synced'
+    };
+    pill.textContent = labels[syncState] || labels.setup;
+    pill.classList.toggle('warn', syncState === 'setup' || syncState === 'badcode');
+  }
+
+  function connectThisDevice() {
+    if (syncState === 'ok' || syncState === 'syncing') { fetchCloudData(); return; }
+    const code = prompt('Enter the household code to sync this device:', getSyncCode());
+    if (code === null) return;
+    localStorage.setItem(SYNC_CODE_KEY, code.trim());
+    fetchCloudData();
+  }
+
+  // Pick up ?code=... from the setup link, then remove it from the address bar
+  function readCodeFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (!code) return;
+    localStorage.setItem(SYNC_CODE_KEY, code.trim());
+    params.delete('code');
+    const rest = params.toString();
+    window.history.replaceState({}, document.title, window.location.pathname + (rest ? `?${rest}` : ''));
+  }
+
+  async function fetchCloudData() {
+    const code = getSyncCode();
+    if (!code) { setSyncStatus('setup'); return; }
+    if (syncInFlight) { syncAgain = true; return; }
+    syncInFlight = true;
+    if (syncState !== 'ok') setSyncStatus('syncing');
+    try {
+      const meta = stampListChanges();
+      const lists = {};
+      Object.entries(syncLists()).forEach(([name, list]) => {
+        lists[name] = { items: JSON.parse(localStorage.getItem(list.key) || list.fallback), updatedAt: meta[name].updatedAt };
+      });
+      const res = await fetch(SYNC_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Household-Code': code },
+        body: JSON.stringify({ shows: loadAllShows(), lists })
+      });
+      if (res.status === 401) { setSyncStatus('badcode'); return; }
+      if (!res.ok) throw new Error(`Sync failed (${res.status})`);
+      applyServerState(await res.json());
+      setSyncStatus('ok');
     } catch (err) {
-      console.log('Cloud fetch error', err);
+      console.log('Sync error', err);
+      setSyncStatus('offline');
+    } finally {
+      syncInFlight = false;
+      if (syncAgain) { syncAgain = false; fetchCloudData(); }
     }
   }
 
-  /* --- CORS-FRIENDLY SAVE TO GOOGLE SHEET --- */
-  async function saveCloudData() {
-    lastLocalChangeTime = Date.now();
-    isSaving = true;
-    try {
-      const payload = {
-        shop: JSON.parse(localStorage.getItem(SHOP_KEY) || '[]'),
-        scratch: JSON.parse(localStorage.getItem(SCRATCH_KEY) || '[]'),
-        shows: JSON.parse(localStorage.getItem(SHOW_KEY) || '[]'),
-        groceries: JSON.parse(localStorage.getItem(GROCERY_KEY) || JSON.stringify(DEFAULT_GROCERIES))
-      };
-
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(payload)
-      });
-    } catch (err) {
-      console.log('Cloud save error', err);
-    } finally {
-      setTimeout(() => { isSaving = false; }, 3000);
-    }
+  // Called after every change: sync shortly, so quick edits go up together
+  function saveCloudData() {
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(fetchCloudData, 400);
   }
 
   /* --- ANDROID SHARE URL HANDLER --- */
@@ -747,9 +850,7 @@
         items.push({ name: itemName, link: link });
         localStorage.setItem(SHOP_KEY, JSON.stringify(items));
         renderShopItems();
-        
-        lastLocalChangeTime = Date.now();
-        await saveCloudData();
+        saveCloudData();
       }
 
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -919,6 +1020,7 @@
      Older entries ({ name, network }) are upgraded when loaded. */
   const TVMAZE = 'https://api.tvmaze.com';
   const WATCH_TAB_KEY = 'louby_watch_tab';
+  const RECENT_PICKS_KEY = 'louby_recent_picks';
   const BADGES = {
     'Netflix': 'badge-netflix', 'Prime Video': 'badge-prime', 'TVNZ+': 'badge-tvnz',
     'ThreeNow': 'badge-threenow', 'Neon': 'badge-neon', 'Disney+': 'badge-disney',
@@ -955,13 +1057,15 @@
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   }
 
-  function loadShows() {
+  // Every show this device knows about, including removed ones ({ id, deleted: true }),
+  // which are kept for a while so the removal reaches the other devices.
+  function loadAllShows() {
     let raw = [];
     try { raw = JSON.parse(localStorage.getItem(SHOW_KEY) || '[]'); } catch (e) {}
     if (!Array.isArray(raw)) raw = [];
     let upgraded = false;
-    const shows = raw.map((s, i) => {
-      if (s && s.id && s.status) return s;
+    const shows = raw.filter(Boolean).map((s, i) => {
+      if (s.id && (s.status || s.deleted)) return s;
       upgraded = true;
       const show = Object.assign({ id: newId() + i, who: 'Both', status: 'next', season: 1, episode: 0, addedAt: Date.now() + i }, s);
       if (show.network === 'Amazon Prime') show.network = 'Prime Video';
@@ -971,10 +1075,54 @@
     return shows;
   }
 
-  function saveShows(shows) {
-    localStorage.setItem(SHOW_KEY, JSON.stringify(shows));
+  function loadShows() {
+    return loadAllShows().filter(s => !s.deleted);
+  }
+
+  // Save changed shows (stamping them so the newest edit wins when syncing) and remove any in removedIds
+  function saveShows(shows, removedIds = []) {
+    const byId = new Map(loadAllShows().map(s => [s.id, s]));
+    const now = Date.now();
+    shows.forEach(s => {
+      const old = byId.get(s.id);
+      if (!old || JSON.stringify(old) !== JSON.stringify(s)) byId.set(s.id, Object.assign({}, s, { updatedAt: now }));
+    });
+    removedIds.forEach(id => byId.set(id, { id, deleted: true, updatedAt: now }));
+    localStorage.setItem(SHOW_KEY, JSON.stringify([...byId.values()]));
     renderShows();
     saveCloudData();
+  }
+
+  /* Same merge as the sync service (sync-worker/worker.js): newest edit of each
+     show wins, and two copies of the same show (added on two devices) become one. */
+  function showKey(show) {
+    return show.tvmazeId ? `tv:${show.tvmazeId}` : `name:${String(show.name || '').trim().toLowerCase()}`;
+  }
+
+  function mergeShows(a, b) {
+    const byId = new Map();
+    for (const show of [...(a || []), ...(b || [])]) {
+      if (!show || typeof show.id !== 'string') continue;
+      const current = byId.get(show.id);
+      if (!current || (show.updatedAt || 0) > (current.updatedAt || 0)) byId.set(show.id, show);
+    }
+    const kept = new Map();
+    const live = [...byId.values()]
+      .filter(s => !s.deleted)
+      .sort((x, y) => (x.addedAt || 0) - (y.addedAt || 0) || x.id.localeCompare(y.id));
+    for (const show of live) {
+      const key = showKey(show);
+      const first = kept.get(key);
+      if (!first) { kept.set(key, show); continue; }
+      if ((show.updatedAt || 0) > (first.updatedAt || 0)) {
+        const merged = Object.assign({}, show, { id: first.id, addedAt: first.addedAt });
+        kept.set(key, merged);
+        byId.set(first.id, merged);
+      }
+      byId.set(show.id, { id: show.id, deleted: true, updatedAt: Math.max(show.updatedAt || 0, first.updatedAt || 0) + 1 });
+    }
+    const cutoff = Date.now() - 60 * 24 * 60 * 60 * 1000;
+    return [...byId.values()].filter(s => !s.deleted || (s.updatedAt || 0) > cutoff);
   }
 
   function updateShow(id, changes) {
@@ -1288,7 +1436,7 @@
       case 'delete': {
         const show = loadShows().find(s => s.id === id);
         if (show && confirm(`Remove ${show.name} from the watchlist?`)) {
-          saveShows(loadShows().filter(s => s.id !== id));
+          saveShows([], [id]);
         }
         break;
       }
@@ -1301,7 +1449,16 @@
       showWatchMsg('Add some shows first, then I\'ll pick one for you!');
       return;
     }
-    const pick = choices[Math.floor(Math.random() * choices.length)];
+    // Don't suggest the same few shows again straight away
+    let recent = [];
+    try { recent = JSON.parse(localStorage.getItem(RECENT_PICKS_KEY) || '[]'); } catch (e) {}
+    const fresh = choices.filter(s => !recent.includes(s.id));
+    const pool = fresh.length ? fresh : choices.filter(s => s.id !== recent[recent.length - 1]);
+    const options = pool.length ? pool : choices;
+    const pick = options[Math.floor(Math.random() * options.length)];
+    const keep = Math.min(3, choices.length - 1);
+    const remembered = [...recent.filter(id => id !== pick.id), pick.id];
+    localStorage.setItem(RECENT_PICKS_KEY, JSON.stringify(keep > 0 ? remembered.slice(-keep) : []));
     pickedShowId = pick.id;
     setWatchTab(pick.status);
     showWatchMsg(`🎲 Tonight's pick: ${pick.name}${pick.network && pick.network !== 'Other' ? ` on ${pick.network}` : ''}!`);
